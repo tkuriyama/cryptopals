@@ -1,7 +1,7 @@
 import binascii
 
 def hex_to_b64(hex_str):
-    """Proper solution: Hex string -> byte array -> Base64 string."""
+    """Convert Hex string to Base64 string."""
     bin = binascii.a2b_hex(hex_str)
     b64_str = binascii.b2a_base64(bin).strip()
     return b64_str
@@ -15,8 +15,6 @@ def main():
 
     assert hex_to_b64(hex_str) == b64_str
     print('p1 ok')
-
-    return True
 
 if __name__ == '__main__':
     main()
