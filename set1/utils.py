@@ -1,3 +1,5 @@
+"""Cryptonaalysis utilities for the cryptopals challenges."""
+
 from __future__ import division
 
 def get_ref_freq_eng():
@@ -14,7 +16,10 @@ def get_ref_freq_eng():
     return d
 
 def xor(arr1, arr2):
-    """XOR two byte arrays."""
+    """XOR two byte arrays. Shorter array should be passed second."""
+    if len(arr2) < len(arr1):
+        l1, l2 = len(arr1), len(arr2)
+        arr2 = arr2 * int(l1 / l2) + arr2[:l1 % l2]
     return [c1 ^ c2 for c1, c2 in zip(arr1, arr2)]
 
 def chi_squared(text, ref_freq):
@@ -37,11 +42,13 @@ def chi_squared(text, ref_freq):
 def decrypt_single_xor(code, ref_freq={}):
     """Decrypt bytearray that has been encrypted with single-char XOR."""
     num_chars = len(code)
-    keys = [bytearray(chr(i)) * num_chars for i in xrange(256)]
-    guesses = [''.join([chr(b) for b in xor(code, key)]) for key in keys]
+    keys = [(chr(i), bytearray(chr(i)) * num_chars) for i in xrange(256)]
+    guesses = [(key, ''.join([chr(b) for b in xor(code, key_full)]))
+               for key, key_full in keys]
 
     if not ref_freq:
         ref_freq = get_ref_freq_eng()
-    scores = [(guess, chi_squared(guess, ref_freq)) for guess in guesses]
-    best_guess = min(scores, key=lambda x: x[1])
+    scores = [(chi_squared(guess, ref_freq), key, guess)
+              for key, guess in guesses]
+    best_guess = min(scores, key=lambda x: x[0])
     return best_guess
