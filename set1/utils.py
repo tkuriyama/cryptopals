@@ -2,6 +2,27 @@
 
 from __future__ import division
 
+# Edit Distance
+
+def arr_to_bin(arr):
+    """Byte array -> string of binary representation (8 bits per byte)."""
+    return ''.join([bin(b)[2:].zfill(8) for b in arr])
+
+def edit_dist(arr1, arr2):
+    """Find edit distance between two byte arrays (as number of dif bits)."""
+    assert len(arr1) == len(arr2)
+    xor_arr = [0 if b1 == b2 else 1
+               for b1, b2 in zip(arr_to_bin(arr1), arr_to_bin(arr2))]
+    return sum(xor_arr)
+
+def test_edit_dist():
+    """Test case for edit_dist()."""
+    str1 = 'this is a test'
+    str2 = 'wokka wokka!!!'
+    assert edit_dist(bytearray(str1), bytearray(str2)) == 37
+
+# Scoring
+
 def get_ref_freq_eng():
     """Dict of frequency distribution of English chars incl. space."""
     d = {'a': 0.0651738, 'b': 0.0124248, 'c': 0.0217339,
@@ -14,13 +35,6 @@ def get_ref_freq_eng():
          'v': 0.0082903, 'w': 0.0171272, 'x': 0.0013692,
          'y': 0.0145984, 'z': 0.0007836, ' ': 0.1918182}
     return d
-
-def xor(arr1, arr2):
-    """XOR two byte arrays. Shorter array should be passed second."""
-    if len(arr2) < len(arr1):
-        l1, l2 = len(arr1), len(arr2)
-        arr2 = arr2 * int(l1 / l2) + arr2[:l1 % l2]
-    return [c1 ^ c2 for c1, c2 in zip(arr1, arr2)]
 
 def chi_squared(text, ref_freq):
     """Return chi-squared test statistic of char frequency of text against ref.
@@ -39,8 +53,24 @@ def chi_squared(text, ref_freq):
               for c, freq in sample_freq.iteritems()]
     return sum(scores)
 
+# XOR
+
+def xor(arr1, arr2):
+    """XOR two byte arrays. Shorter array should be passed second."""
+    if len(arr2) < len(arr1):
+        l1, l2 = len(arr1), len(arr2)
+        arr2 = arr2 * int(l1 / l2) + arr2[:l1 % l2]
+    return [c1 ^ c2 for c1, c2 in zip(arr1, arr2)]
+
 def decrypt_single_xor(code, ref_freq={}):
-    """Decrypt bytearray that has been encrypted with single-char XOR."""
+    """Decrypt bytearray that has been encrypted with single-char XOR.
+    Brute force all 256 possible keys and return best guess.
+    Args
+        code: bytearray of code to decrypt
+        ref_freq: dict of reference char frequency, optional
+    Returns
+        (score, key, plaintext guess)
+    """
     num_chars = len(code)
     keys = [(chr(i), bytearray(chr(i)) * num_chars) for i in xrange(256)]
     guesses = [(key, ''.join([chr(b) for b in xor(code, key_full)]))
