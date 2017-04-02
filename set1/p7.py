@@ -1,5 +1,4 @@
 from Crypto.Cipher import AES
-import utils
 
 def main():
     """Main."""
