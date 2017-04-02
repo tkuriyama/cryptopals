@@ -1,6 +1,15 @@
 """Cryptonaalysis utilities for the cryptopals challenges."""
 
 from __future__ import division
+from collections import defaultdict
+from Crypto.Cipher import AES
+
+# Helpers
+
+def get_blocks(code, size, n=4):
+    """Get first n blocks of given size (int) from code."""
+    assert size * n <= len(code)
+    return [code[i * size: (i + 1) * size] for i in xrange(n)]
 
 # Edit Distance
 
@@ -91,3 +100,21 @@ def decrypt_single_xor(code, ref_freq={}):
 
     scores = score_guesses(guesses)
     return min(scores, key=lambda x: x[0])
+
+# AES
+
+def detect_AES_ECB(code):
+    """Detect if code is encrypted in AES ECB mode.
+    Returns
+        (flag if ECB mode likely, dict of any blocks occuring more than once)
+    """
+    blocks = get_blocks(code, 16, int(len(code) / 16))
+
+    freq_dict = defaultdict(int)
+    for block in blocks:
+        block_hex = ''.join([chr(b).encode('hex') for b in block])
+        freq_dict[block_hex] += 1
+
+    high_freq = [(block, freq) for block, freq in freq_dict.iteritems()
+                 if freq > 1]
+    return True if high_freq else False, high_freq
