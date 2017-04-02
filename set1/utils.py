@@ -36,9 +36,15 @@ def get_ref_freq_eng():
          'y': 0.0145984, 'z': 0.0007836, ' ': 0.1918182}
     return d
 
+def chi_squared_calc(c, freq, ref_freq):
+    """Return chi-squared calc for individual observation.
+    Ignore common puctuation and penalize unknown characters."""
+    return ((freq - ref_freq[c]) ** 2 / ref_freq[c] if c in ref_freq else
+            0 if c in ('\n', '\'', '"', ',', '-', '.', '?', '!', '-') else
+            1)
+
 def chi_squared(text, ref_freq):
     """Return chi-squared test statistic of char frequency of text against ref.
-    Penalize keys in text that are not in reference.
     Args
         text: sequence of chars, e.g. bytearray or str
         ref_freq: dict, frequency distribution of chars
@@ -49,9 +55,16 @@ def chi_squared(text, ref_freq):
     length = len(sample)
     sample_freq = dict([(c, sample.count(c) / length) for c in sample])
 
-    scores = [(freq - ref_freq[c]) ** 2 / ref_freq[c] if c in ref_freq else 1
+    scores = [chi_squared_calc(c, freq, ref_freq)
               for c, freq in sample_freq.iteritems()]
     return sum(scores)
+
+def score_guesses(guesses, ref_freq={}):
+    """Score list of guesses [key, guess] with chi-squared stat."""
+    if not ref_freq:
+        ref_freq = get_ref_freq_eng()
+    return [(chi_squared(guess, ref_freq), key, guess)
+            for key, guess in guesses]
 
 # XOR
 
@@ -76,9 +89,5 @@ def decrypt_single_xor(code, ref_freq={}):
     guesses = [(key, ''.join([chr(b) for b in xor(code, key_full)]))
                for key, key_full in keys]
 
-    if not ref_freq:
-        ref_freq = get_ref_freq_eng()
-    scores = [(chi_squared(guess, ref_freq), key, guess)
-              for key, guess in guesses]
-    best_guess = min(scores, key=lambda x: x[0])
-    return best_guess
+    scores = score_guesses(guesses)
+    return min(scores, key=lambda x: x[0])
