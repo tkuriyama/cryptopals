@@ -2,7 +2,7 @@ import utils
 
 def main():
     """Main."""
-    with open('p2_problem.txt', 'r') as f:
+    with open('p10_problem.txt', 'r') as f:
         data = f.read()
         code = bytearray(data.decode('base64'))
 
