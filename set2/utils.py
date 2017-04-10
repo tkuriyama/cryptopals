@@ -8,7 +8,7 @@ def xor(arr1, arr2):
     if len(arr2) < len(arr1):
         l1, l2 = len(arr1), len(arr2)
         arr2 = arr2 * int(l1 / l2) + arr2[:l1 % l2]
-    return [c1 ^ c2 for c1, c2 in zip(arr1, arr2)]
+    return bytearray(c1 ^ c2 for c1, c2 in zip(arr1, arr2))
 
 # padding
 
@@ -35,7 +35,7 @@ def gen_blocks(code, pad, size=16):
 def CBC_encrypt(aes_f, blocks):
     """CBC encrypt: first XOR then encrypt."""
     prev = blocks[0]
-    output = []
+    output = bytearray()
     for block in blocks[1:]:
         xor_arr = xor(prev, block)
         enc_arr = bytearray(aes_f(''.join([chr(b) for b in xor_arr])))
@@ -46,7 +46,7 @@ def CBC_encrypt(aes_f, blocks):
 def CBC_decrypt(aes_f, blocks):
     """CBC decyrpt: first decrypt then XOR."""
     prev = blocks[0]
-    output = []
+    output = bytearray()
     for block in blocks[1:]:
         dec_arr = bytearray(aes_f(''.join([chr(b) for b in block])))
         xor_arr = xor(dec_arr, prev)
@@ -63,7 +63,7 @@ def apply_CBC(mode, input, key, iv, block_len=16):
         iv: bytearray, initialization vector for CBC
         block_len: int, optional, normally 16 for block size
     Returns
-    
+        Bytearray of encrypted or decrypted input.
     """
     key_AES = AES.new(key, AES.MODE_ECB)
     blocks = [iv] + gen_blocks(input, pad_pkcs7, len(key))
