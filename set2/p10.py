@@ -11,7 +11,7 @@ def main():
 
     decrypted = utils.apply_CBC('decrypt', code, key, iv)
     print ''.join([chr(b) for b in decrypted])
-    print 'p2 ok'
+    print 'p10 ok'
 
 if __name__ == '__main__':
     main()
