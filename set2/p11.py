@@ -48,5 +48,5 @@ def main():
 
     print 'p11 ok'
 
-if __na me__ == '__main__':
+if __name__ == '__main__':
     main()
