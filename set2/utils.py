@@ -126,6 +126,15 @@ def encrypt_ECB_CBC(text, noise=True, force_ECB=False, noise_vals=None,
         code = apply_CBC('encrypt', text, key, gen_rand_key())
     return code
 
+def gen_ECB_oracle(full_code):
+    """Return an ECB oracle function with fixed code to append and key."""
+    key = gen_rand_key()
+    
+    def call_encrypt(text, code=full_code):
+        """Call ECB encryption with given code to append and fixed key."""
+        return encrypt_ECB_CBC(text, True, True, (bytearray(), code), key)
+    return call_encrypt
+
 def repeated_blocks(blocks, threshold=2):
     """Retrun True if list of blocks > count of dups more than theshold."""
     blocks_list = [str(block) for block in blocks]
@@ -140,6 +149,48 @@ def detect_ECB(encrypt):
     code = encrypt(text)
     blocks = gen_blocks(code)
     return True if repeated_blocks(blocks, 3) else False
+
+# ECB Attack
+
+def gen_ECB_guesses(oracle, short):
+    """Generate all possible full blocks given oracle and short block."""
+    guesses = {}
+    for n in xrange(256):
+        code = oracle(short + bytearray([n]))[:16]
+        guesses[str(code)] = bytearray([n])
+    return guesses
+
+def decrypt_ECB_block(oracle, block_len, block):
+    """Brute-force decrypt ECB block using oracle."""
+    guess = bytearray('A' * block_len)
+    for ind in xrange(block_len):
+        short = guess[1:]
+        target = oracle(short, block[ind:])
+        guesses = gen_ECB_guesses(oracle, short)
+        found_byte = guesses[str(target[:16])]
+        guess = guess[1:] + found_byte
+
+    return guess
+
+def decrypt_oracle_ECB(oracle, block_len, code):
+    """Perform byte-at-a-time ECB decryption with given oracle.
+    Args
+        oracle: function, ECB oracle
+        block_len: int, length of cipher block
+        code: bytearray, ciphertext
+    Returns
+        bytearray of plaintext
+    """
+    plaintext = ''
+    block, rest = code[:block_len], code[block_len:]
+    
+    while block or rest:
+        decrypted = decrypt_ECB_block(oracle, block_len, block)
+        plaintext += decrypted
+        block, rest = rest[:block_len], rest[block_len:]
+
+    return plaintext
+
 
 # tests
 
@@ -166,3 +217,5 @@ def test_CBC_symmetry():
     assert text == plain
 
     return True
+
+
