@@ -1,4 +1,5 @@
 from __future__ import division
+import math
 import random
 from Crypto.Cipher import AES
 
@@ -31,7 +32,7 @@ def pad_pkcs7(key, block_len=16):
 
 def gen_blocks(code, pad=pad_pkcs7, size=16):
     """Generate blocks from given bytearray code and pad function."""
-    num_blocks = int(len(code) / size)
+    num_blocks = int(math.ceil(len(code) / size))
     blocks = [code[i * size: i * size + size] for i in xrange(num_blocks)]
     last = blocks[-1] if len(blocks[-1]) == size else pad(blocks[-1], size)
     return blocks[:-1] + [last]
@@ -95,21 +96,28 @@ def apply_CBC(mode, input, key, iv, block_len=16):
 
 # ECB / CBC Encryption and Detection Oracle
 
-def encrypt_ECB_CBC(text, noise=True, force_ECB=False):
-    """Encrypt given text in ECB or CBC, randomly with noice unless specified.
+def encrypt_ECB_CBC(text, noise=True, force_ECB=False, noise_vals=None,
+                    fixed_key=None):
+    """Encrypt given text in ECB or CBC, randomly with noise unless specified.
     Args
         text: bytearray of plaintext to encrypt
         noise: bool, add 5 - 10 random before and after text, default True
         force_ECB: bool, force ECB if set to True, default False
+        noise_vals: tuple, optional bytearray values to (prepend, append)
+        fixed_key: bytearray, optional fixed key to use in encryption
     Returns
         Bytearray of encrypted text.
     """
-    if noise:
+    if noise and not noise_vals:
         size1 = random.SystemRandom().randint(5, 10)
         size2 = random.SystemRandom().randint(5, 10)
         text = gen_rand_key(size1) + text + gen_rand_key(size2)
+    elif noise and noise_vals:
+        pre, app = noise_vals
+        text = pre + text + app
 
-    key = gen_rand_key()
+    # encrypt with ECB or CBC, optionally forcing ECB and fixed key
+    key = gen_rand_key() if not fixed_key else fixed_key
     ECB = random.SystemRandom().randint(0, 1)
 
     if ECB or force_ECB:
@@ -158,4 +166,3 @@ def test_CBC_symmetry():
     assert text == plain
 
     return True
-
