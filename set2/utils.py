@@ -43,8 +43,8 @@ def apply_ECB(mode, input, key, pad=pad_pkcs7):
     """Apply ECB to given key and inputs.
     Args
         mode: str, 'encrypt' or 'decrypt'
-        key: str, key to use as AES key
         input: bytearray of input code
+        key: AES key object in ECB mode
         pad: padding function to use on input
     Returns
         Bytearray of encrypted or decrypted input.
@@ -189,8 +189,13 @@ def decrypt_oracle_ECB(oracle, block_len, code):
         plaintext += decrypted
         block, rest = rest[:block_len], rest[block_len:]
 
-    return plaintext
-
+    # strip padding from decryption
+    end = len(plaintext)
+    for i in xrange(1, 16):
+        if plaintext[-i] < 32:
+            end -= 1
+        
+    return plaintext[:end]
 
 # tests
 
