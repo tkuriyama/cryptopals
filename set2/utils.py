@@ -126,13 +126,24 @@ def encrypt_ECB_CBC(text, noise=True, force_ECB=False, noise_vals=None,
         code = apply_CBC('encrypt', text, key, gen_rand_key())
     return code
 
-def gen_ECB_oracle(full_code):
-    """Return an ECB oracle function with fixed code to append and key."""
+def gen_ECB_oracle(full_code, rand_prefix=False):
+    """Return an ECB oracle function with set of fixed parameters.
+    Args
+        full_code: bytearray of bytes to encrypt
+        rand_prefix: default None, int of max number of rand bytes to prefix
+    Returns
+        parameterized ECB encryption function
+    """
     key = gen_rand_key()
-    
+
     def call_encrypt(text, code=full_code):
         """Call ECB encryption with given code to append and fixed key."""
-        return encrypt_ECB_CBC(text, True, True, (bytearray(), code), key)
+        if rand_prefix:
+            max_len = random.SystemRandom().randint(0, 20)
+            prefix = gen_rand_key(max_len)
+        else:
+            prefix = bytearray()
+        return encrypt_ECB_CBC(text, True, True, (prefix, code), key)
     return call_encrypt
 
 def repeated_blocks(blocks, threshold=2):
@@ -160,8 +171,11 @@ def gen_ECB_guesses(oracle, short):
         guesses[str(code)] = bytearray([n])
     return guesses
 
-def decrypt_ECB_block(oracle, block_len, block):
-    """Brute-force decrypt ECB block using oracle."""
+def decrypt_ECB_block(oracle, block_len, block, max_rand=20):
+    """Brute-force decrypt ECB block using oracle.
+    Assume there may be max_rand number of random bits prepended in oracle.
+    
+    """
     guess = bytearray('A' * block_len)
     for ind in xrange(block_len):
         short = guess[1:]
@@ -183,7 +197,7 @@ def decrypt_oracle_ECB(oracle, block_len, code):
     """
     plaintext = ''
     block, rest = code[:block_len], code[block_len:]
-    
+
     while block or rest:
         decrypted = decrypt_ECB_block(oracle, block_len, block)
         plaintext += decrypted
@@ -194,7 +208,7 @@ def decrypt_oracle_ECB(oracle, block_len, code):
     for i in xrange(1, 16):
         if plaintext[-i] < 32:
             end -= 1
-        
+
     return plaintext[:end]
 
 # tests
@@ -222,5 +236,4 @@ def test_CBC_symmetry():
     assert text == plain
 
     return True
-
 
