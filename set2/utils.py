@@ -27,15 +27,17 @@ def pad_pkcs7(key, block_len=16):
     Returns
         bytearray of padded key
     """
-    pad_len = max(0, block_len - len(key))
+    if block_len == len(key):
+        pad_len = block_len
+    else:
+        pad_len = block_len - len(key)
     return key + bytearray([pad_len] * pad_len)
 
 def gen_blocks(code, pad=pad_pkcs7, size=16):
     """Generate blocks from given bytearray code and pad function."""
     num_blocks = int(math.ceil(len(code) / size))
     blocks = [code[i * size: i * size + size] for i in xrange(num_blocks)]
-    last = blocks[-1] if len(blocks[-1]) == size else pad(blocks[-1], size)
-    return blocks[:-1] + [last]
+    return blocks[:-1] + [pad(blocks[-1], size)]
 
 # ECB
 
@@ -139,8 +141,8 @@ def gen_ECB_oracle(full_code, rand_prefix=False):
     def call_encrypt(text, code=full_code):
         """Call ECB encryption with given code to append and fixed key."""
         if rand_prefix:
-            max_len = random.SystemRandom().randint(0, 20)
-            prefix = gen_rand_key(max_len)
+            length = random.SystemRandom().randint(0, 20)
+            prefix = gen_rand_key(length)
         else:
             prefix = bytearray()
         return encrypt_ECB_CBC(text, True, True, (prefix, code), key)
@@ -174,7 +176,7 @@ def gen_ECB_guesses(oracle, short):
 def decrypt_ECB_block(oracle, block_len, block, max_rand=20):
     """Brute-force decrypt ECB block using oracle.
     Assume there may be max_rand number of random bits prepended in oracle.
-    
+
     """
     guess = bytearray('A' * block_len)
     for ind in xrange(block_len):
@@ -236,4 +238,3 @@ def test_CBC_symmetry():
     assert text == plain
 
     return True
-
