@@ -25,13 +25,13 @@ def main():
     code_b64 += 'dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg'
     code_b64 += 'YnkK'
     code = bytearray(code_b64.decode('base64'))
-    
+
     oracle = utils.gen_ECB_oracle(code)
     block_len = find_length(oracle)
     print '> Block size:', block_len
     print '> Oracle using ECB:', utils.detect_ECB(oracle)
     print '> Plaintext:\n', utils.decrypt_oracle_ECB(oracle, block_len, code)
     print '> p12 ok'
-    
+
 if __name__ == '__main__':
     main()
