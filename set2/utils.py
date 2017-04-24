@@ -205,13 +205,15 @@ def blocks_aligned(code, block_len, max_rand):
     while start1 < max_rand + block_len:
         fst = code[start1: start2]
         snd = code[start2: start3]
-        if fst == snd:
+        third = code[start3: start3 + block_len]
+        # check for collision against randomly generated prefix
+        if fst == snd and snd != third:
             aligned = True
             break
         else:
             start1, start2, start3 = start2, start3, start3 + block_len
 
-    return start3 if aligned else 0
+    return start3 if aligned else None
 
 def smart_oracle(oracle, text, code, block_len, max_rand):
     """Call oracle normally, or repeatedly call oracle in case of random prefix.
@@ -221,12 +223,13 @@ def smart_oracle(oracle, text, code, block_len, max_rand):
     if not max_rand:
         return oracle(text, code) if code else oracle(text)
 
+    # append arbitrary bytes unlikely to occur in attacker-controlled plaintext
     text_mod = bytearray([7] * block_len * 2) + text
     success = False
     while not success:
         encrypted = oracle(text_mod, code) if code else oracle(text_mod)
         text_start = blocks_aligned(encrypted, block_len, max_rand)
-        if text_start > 0:
+        if text_start is not None:
             success = True
 
     return encrypted[text_start:]

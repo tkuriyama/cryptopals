@@ -10,8 +10,17 @@ def main():
 
     oracle = utils.gen_ECB_oracle(code, 20)
     print '> Oracle using ECB:', utils.detect_ECB(oracle)
-    print '> Plaintext:\n', utils.decrypt_oracle_ECB(oracle, 16, code, 20)
-    print '> p14 ok'
+    for i in xrange(1, 11):
+        try:
+            decrypted = utils.decrypt_oracle_ECB(oracle, 16, code, 20)
+            break
+        except KeyError:
+            print 'try {:d} failed, trying again'.format(i)
+    if decrypted:
+        print '> Plaintext:\n', decrypted
+        print '> p14 ok'
+    else:
+        print '> p14 failed -- unable to decipher after several tries'
 
 if __name__ == '__main__':
     main()
