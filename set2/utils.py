@@ -33,11 +33,39 @@ def pad_pkcs7(key, block_len=16):
         pad_len = block_len - len(key)
     return key + bytearray([pad_len] * pad_len)
 
+def strip_pkcs7(input, raise_error=True):
+    """Strip PKCS7 padding from input. Raise error if invalid padding.
+    Call with raise_error=False for testing with assertions.
+    """
+    padding = input[-1]
+    valid = True
+    for i in xrange(1, padding + 1):
+        if i > len(input):
+            if raise_error:
+                raise IndexError('Padding too long for input')
+            valid = False
+            break
+        if input[-i] != padding:
+            if raise_error:
+                raise ValueError('Invalid padding detected')
+            valid = False
+
+    return input[:-padding] if valid else False
+
 def gen_blocks(code, pad=pad_pkcs7, size=16):
     """Generate blocks from given bytearray code and pad function."""
     num_blocks = int(math.ceil(len(code) / size))
     blocks = [code[i * size: i * size + size] for i in xrange(num_blocks)]
-    return blocks[:-1] + [pad(blocks[-1], size)]
+
+    # PKCS#7 adds extra block if last code block matches block size
+    padded = pad(blocks[-1], size)
+    if pad == pad_pkcs7:
+        last = ([padded] if size != len(blocks[-1]) else
+                [padded[:size], padded[size:]])
+    else:
+        last = [padded]
+
+    return blocks[:-1] + last
 
 # ECB
 
