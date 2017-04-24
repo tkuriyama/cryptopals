@@ -166,7 +166,11 @@ def detect_ECB(encrypt):
 # ECB Attack
 
 def blocks_aligned(code, block_len, max_rand):
-    """
+    """Check if code contains repeating blocks.
+    Code contains max_rand number of random bytes as prefix; check if the
+    prefix happens to divisible by the block length, whcih can be observed by
+    repeating blocks immediately following the prefix. Return first index
+    following repeating blocks if available, else 0.
     """
     start1, start2, start3 = 0, 0 + block_len, 0 + (block_len * 2)
     aligned = False
@@ -182,8 +186,9 @@ def blocks_aligned(code, block_len, max_rand):
     return start3 if aligned else 0
 
 def smart_oracle(oracle, text, code, block_len, max_rand):
-    """
-
+    """Call oracle normally, or repeatedly call oracle in case of random prefix.
+    Returns "clean" oracle ouptut regardless of whether the oracle adds a
+    random prefix.
     """
     if not max_rand:
         return oracle(text, code) if code else oracle(text)
