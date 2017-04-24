@@ -52,8 +52,8 @@ def apply_ECB(mode, input, key, pad=pad_pkcs7):
         Bytearray of encrypted or decrypted input.
     """
     blocks = gen_blocks(input, pad)
-    input_str = ''.join([str(block) for block in blocks])
     aes_f = key.encrypt if mode == 'encrypt' else key.decrypt
+    input_str = ''.join([str(block) for block in blocks])
     return bytearray(aes_f(input_str))
 
 # CBC
@@ -128,11 +128,11 @@ def encrypt_ECB_CBC(text, noise=True, force_ECB=False, noise_vals=None,
         code = apply_CBC('encrypt', text, key, gen_rand_key())
     return code
 
-def gen_ECB_oracle(full_code, rand_prefix=False):
+def gen_ECB_oracle(full_code, rand_prefix=0):
     """Return an ECB oracle function with set of fixed parameters.
     Args
         full_code: bytearray of bytes to encrypt
-        rand_prefix: default None, int of max number of rand bytes to prefix
+        rand_prefix: int of max number of rand bytes to prefix, default 0
     Returns
         parameterized ECB encryption function
     """
@@ -141,7 +141,7 @@ def gen_ECB_oracle(full_code, rand_prefix=False):
     def call_encrypt(text, code=full_code):
         """Call ECB encryption with given code to append and fixed key."""
         if rand_prefix:
-            length = random.SystemRandom().randint(0, 20)
+            length = random.SystemRandom().randint(0, rand_prefix)
             prefix = gen_rand_key(length)
         else:
             prefix = bytearray()
@@ -165,35 +165,76 @@ def detect_ECB(encrypt):
 
 # ECB Attack
 
-def gen_ECB_guesses(oracle, short):
+def blocks_aligned(code, block_len, max_rand):
+    """
+    """
+    start1, start2, start3 = 0, 0 + block_len, 0 + (block_len * 2)
+    aligned = False
+    while start1 < max_rand + block_len:
+        fst = code[start1: start2]
+        snd = code[start2: start3]
+        if fst == snd:
+            aligned = True
+            break
+        else:
+            start1, start2, start3 = start2, start3, start3 + block_len
+
+    return start3 if aligned else 0
+
+def smart_oracle(oracle, text, code, block_len, max_rand):
+    """
+
+    """
+    if not max_rand:
+        return oracle(text, code) if code else oracle(text)
+
+    text_mod = bytearray([7] * block_len * 2) + text
+    success = False
+    while not success:
+        encrypted = oracle(text_mod, code) if code else oracle(text_mod)
+        text_start = blocks_aligned(encrypted, block_len, max_rand)
+        if text_start > 0:
+            success = True
+
+    return encrypted[text_start:]
+
+def gen_ECB_guesses(oracle, short, block_len, max_rand):
     """Generate all possible full blocks given oracle and short block."""
     guesses = {}
     for n in xrange(256):
-        code = oracle(short + bytearray([n]))[:16]
-        guesses[str(code)] = bytearray([n])
+        code = smart_oracle(oracle, short + bytearray([n]), [],
+                            block_len, max_rand)
+        guesses[str(code[:16])] = bytearray([n])
     return guesses
 
-def decrypt_ECB_block(oracle, block_len, block, max_rand=20):
+def decrypt_ECB_block(oracle, block_len, block, max_rand=0):
     """Brute-force decrypt ECB block using oracle.
     Assume there may be max_rand number of random bits prepended in oracle.
-
+    Args
+        oracle: function, ECB oracle
+        block_len: int, lenght of cipher block
+        block: bytearray of code block to decrypt
+        max_rand: int, maximum number of random bytes prefixed by oracle
+    Returns
+        bytearray of plaintext block
     """
     guess = bytearray('A' * block_len)
     for ind in xrange(block_len):
         short = guess[1:]
-        target = oracle(short, block[ind:])
-        guesses = gen_ECB_guesses(oracle, short)
+        target = smart_oracle(oracle, short, block[ind:], block_len, max_rand)
+        guesses = gen_ECB_guesses(oracle, short, block_len, max_rand)
         found_byte = guesses[str(target[:16])]
         guess = guess[1:] + found_byte
 
     return guess
 
-def decrypt_oracle_ECB(oracle, block_len, code):
+def decrypt_oracle_ECB(oracle, block_len, code, max_rand=0):
     """Perform byte-at-a-time ECB decryption with given oracle.
     Args
         oracle: function, ECB oracle
         block_len: int, length of cipher block
         code: bytearray, ciphertext
+        max_rand: int, max number of random bytes prefixed by oracle
     Returns
         bytearray of plaintext
     """
@@ -201,13 +242,13 @@ def decrypt_oracle_ECB(oracle, block_len, code):
     block, rest = code[:block_len], code[block_len:]
 
     while block or rest:
-        decrypted = decrypt_ECB_block(oracle, block_len, block)
+        decrypted = decrypt_ECB_block(oracle, block_len, block, max_rand)
         plaintext += decrypted
         block, rest = rest[:block_len], rest[block_len:]
 
     # strip padding from decryption
     end = len(plaintext)
-    for i in xrange(1, 16):
+    for i in xrange(1, block_len):
         if plaintext[-i] < 32:
             end -= 1
 
@@ -236,5 +277,15 @@ def test_CBC_symmetry():
     cipher = apply_CBC('encrypt', text, key, iv)
     plain = apply_CBC('decrypt', cipher, key, iv)
     assert text == plain
+
+    return True
+
+def test_blocks_aligned():
+    """Test blocks_aligned() function."""
+    sample = 'ABCD' + 'WXYZ' + 'WXYZ' + 'ABC' * 10
+    assert blocks_aligned(sample, 4, 4) is 12
+    assert blocks_aligned(sample, 2, 2) is 0
+    assert blocks_aligned(sample, 3, 9) is 0
+    assert blocks_aligned(sample, 3, 10) is 18
 
     return True
