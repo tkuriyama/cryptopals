@@ -279,7 +279,7 @@ def decrypt_oracle_ECB(oracle, block_len, code, max_rand=0):
         plaintext += decrypted
         block, rest = rest[:block_len], rest[block_len:]
 
-    return plaintext
+    return plaintext[:len(code)]
 
 # tests
 
