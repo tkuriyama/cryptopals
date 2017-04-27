@@ -58,12 +58,13 @@ def gen_blocks(code, pad=pad_pkcs7, size=16):
     blocks = [code[i * size: i * size + size] for i in xrange(num_blocks)]
 
     # PKCS#7 adds extra block if last code block matches block size
-    padded = pad(blocks[-1], size)
     if pad == pad_pkcs7:
+        padded = pad(blocks[-1], size)
         last = ([padded] if size != len(blocks[-1]) else
                 [padded[:size], padded[size:]])
+    # no padding specified
     else:
-        last = [padded]
+        last = [blocks[-1]]
 
     return blocks[:-1] + last
 
@@ -79,7 +80,7 @@ def apply_ECB(mode, input, key, pad=pad_pkcs7):
     Returns
         Bytearray of encrypted or decrypted input.
     """
-    blocks = gen_blocks(input, pad)
+    blocks = gen_blocks(input, pad if mode == 'encrypt' else None)
     aes_f = key.encrypt if mode == 'encrypt' else key.decrypt
     input_str = ''.join([str(block) for block in blocks])
     return bytearray(aes_f(input_str))
@@ -106,9 +107,9 @@ def CBC_decrypt(aes_f, blocks):
         xor_arr = xor(dec_arr, prev)
         prev = block[:]
         output.extend(xor_arr)
-    return output
+    return strip_pkcs7(output)
 
-def apply_CBC(mode, input, key, iv, block_len=16):
+def apply_CBC(mode, input, key, iv=None, block_len=16):
     """Apply CBC to given input, key, and iv values.
     Args
         mode: str, 'encrypt' or 'decrypt'
@@ -120,7 +121,11 @@ def apply_CBC(mode, input, key, iv, block_len=16):
         Bytearray of encrypted or decrypted input.
     """
     key_AES = AES.new(str(key), AES.MODE_ECB)
-    blocks = [iv] + gen_blocks(input, pad_pkcs7, len(key))
+    iv_AES = bytearray([0] * block_len) if not iv else iv
+
+    pad = pad_pkcs7 if mode == 'encrypt' else None
+    blocks = [iv_AES] + gen_blocks(input, pad, len(key))
+    
     return (CBC_encrypt(key_AES.encrypt, blocks) if mode == 'encrypt' else
             CBC_decrypt(key_AES.decrypt, blocks))
 
