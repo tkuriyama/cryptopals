@@ -72,3 +72,4 @@ let decryptSingleXor code =
     code
     |> singleXorGuesses
     |> scoreGuesses
+    |> Seq.maxBy (fun tup -> snd tup) 
