@@ -12,4 +12,4 @@ let solve =
     readLines "p4_problem.txt"
     |> Seq.map Utils.decodeHex
     |> Seq.map Utils.decryptSingleXor
-    |> Seq.maxBy (fun tup -> snd tup)
+    |> Seq.maxBy (snd)
