@@ -56,7 +56,7 @@ let singleXorGuesses (code: byte seq) : string seq  =
          yield xor code (guess b) |> bytesToStr }
 
 let histogram cs =
-    Seq.groupBy (fun c -> c) cs
+    Seq.groupBy (id) cs
     |> Map.ofSeq
     |> Map.map (fun k v -> Seq.length v)
 
@@ -72,4 +72,5 @@ let decryptSingleXor code =
     code
     |> singleXorGuesses
     |> scoreGuesses
-    |> Seq.maxBy (fun tup -> snd tup) 
+    |> Seq.maxBy (snd)
+
