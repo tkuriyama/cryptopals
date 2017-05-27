@@ -22,7 +22,17 @@ let xor (b1: byte seq) (b2: byte seq) : byte seq =
     Seq.zip b1 b2
     |> Seq.map (fun (x, y) -> x ^^^ y)
 
+let rec transpose xss =
+   match xss with
+       | ([]::_) -> []
+       | xss   -> List.map List.head xss :: transpose (List.map List.tail xss)
+
+let repeat x = seq { while true do yield x }
+let repeatSeq xs = seq { while true do yield! xs }
+
 (* Encodings *)
+
+let strToBytes (s: string) : byte [] = Text.Encoding.ASCII.GetBytes s
 
 let hexToByte = function
     | '0' -> 0uy  | '1' -> 1uy
@@ -74,23 +84,23 @@ let freqMap =
                 ('v', 0.0082903); ('w', 0.0171272); ('x', 0.0013692);
                 ('y', 0.0145984); ('z', 0.0007836); (' ', 0.1918182)]
 
-let singleXorGuesses (code: byte seq) : string seq  =
-    let guess b = seq { while true do yield b }
+let singleXorGuesses (code: byte seq) : (string * string) seq  =
     seq{ for b in 00uy .. 255uy do
-         yield xor code (guess b) |> bytesToStr }
+         let guess = xor code (repeat b) 
+         yield ([|b|] |> bytesToStr, guess |> bytesToStr) }
 
 let histogram cs =
     Seq.groupBy id cs
     |> Map.ofSeq
     |> Map.map (fun k v -> Seq.length v)
 
-let scoreGuesses (guesses: string seq) : (string * float) seq =
+let scoreGuesses (guesses: (string * string) seq) : ((string * string) * float) seq =
     let lookupKey k v =
         match (Map.tryFind k freqMap) with
         | Some x -> x * (float v)
         | None   -> 0.0
     let score hist = Map.fold (fun s k v -> s + (lookupKey k v)) 0.0 hist
-    Seq.map (fun guess -> (guess, histogram guess |> score)) guesses
+    Seq.map (fun (key, guess) -> ((key, guess), histogram guess |> score)) guesses
 
 let decryptSingleXor code =
     code
