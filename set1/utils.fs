@@ -53,8 +53,8 @@ let bytesToHex (b: byte seq) : string =
 
 let compareByte ((b1: byte), (b2: byte)) : int =
     let countBits b =
-        Seq.sum (seq { for i in 0 .. 7 do yield
-                       if (b >>> i) &&& 1uy = 1uy then 1 else 0 })
+        Seq.sum (seq { for i in 0 .. 7 do
+                       yield if (b >>> i) &&& 1uy = 1uy then 1 else 0 })
     countBits (b1 ^^^ b2)
 
 let editDistance (b1: byte seq) (b2: byte seq) : int =
