@@ -1,5 +1,6 @@
 #load "utils.fs"
 
+open System
 open Utils
 
 let plainText = "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
