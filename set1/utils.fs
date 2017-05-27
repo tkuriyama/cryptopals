@@ -1,6 +1,28 @@
 module Utils
 
 open System
+open System.IO
+
+(* IO *)
+
+let readLines (filePath: string) =
+    seq { use sr = new StreamReader (filePath)
+          while not sr.EndOfStream do
+          yield sr.ReadLine () }
+
+(* Helpers *)
+
+let chunk n xs =
+    xs 
+    |> Seq.mapi (fun i x -> i/n, x)
+    |> Seq.groupBy fst
+    |> Seq.map (fun (_, g) -> Seq.map snd g)
+
+let xor (b1: byte seq) (b2: byte seq) : byte seq =
+    Seq.zip b1 b2
+    |> Seq.map (fun (x, y) -> x ^^^ y)
+
+(* Encodings *)
 
 let hexToByte = function
     | '0' -> 0uy  | '1' -> 1uy
@@ -13,21 +35,11 @@ let hexToByte = function
     | 'e' -> 14uy | 'f' -> 15uy
     | _ -> failwith "Invalid hex char"
 
-let chunk n xs =
-    xs 
-    |> Seq.mapi (fun i x -> i/n, x)
-    |> Seq.groupBy fst
-    |> Seq.map (fun (_, g) -> Seq.map snd g)
-
 let decodeHex s =
     chunk 2 s
     |> Seq.map (fun pair -> (Seq.head pair, Seq.last pair))
     |> Seq.map (fun (x, y) -> (hexToByte x <<< 4) ||| hexToByte y)
     |> List.ofSeq
-
-let xor (b1: byte seq) (b2: byte seq) : byte seq =
-    Seq.zip b1 b2
-    |> Seq.map (fun (x, y) -> x ^^^ y)
 
 let bytesToStr (b: byte seq) : string =
     Seq.toArray b
@@ -36,6 +48,18 @@ let bytesToStr (b: byte seq) : string =
 let bytesToHex (b: byte seq) : string =
     Seq.map (sprintf "%02x") b
     |> String.concat ""
+
+(* Hamming Distance *)
+
+let compareByte ((b1: byte), (b2: byte)) : int =
+    let countBits b =
+        Seq.sum (seq { for i in 0 .. 7 do yield
+                       if (b >>> i) &&& 1uy = 1uy then 1 else 0 })
+    countBits (b1 ^^^ b2)
+
+let editDistance (b1: byte seq) (b2: byte seq) : int =
+    Seq.zip b1 b2
+    |> Seq.fold (fun acc pair -> acc + (compareByte pair)) 0
 
 (* Decrypt single-char XOR *)
 
@@ -56,7 +80,7 @@ let singleXorGuesses (code: byte seq) : string seq  =
          yield xor code (guess b) |> bytesToStr }
 
 let histogram cs =
-    Seq.groupBy (id) cs
+    Seq.groupBy id cs
     |> Map.ofSeq
     |> Map.map (fun k v -> Seq.length v)
 
@@ -72,5 +96,5 @@ let decryptSingleXor code =
     code
     |> singleXorGuesses
     |> scoreGuesses
-    |> Seq.maxBy (snd)
+    |> Seq.maxBy snd
 
