@@ -90,8 +90,8 @@ let singleXorGuesses (code: byte seq) : (string * string) seq  =
          let guess = xor code (repeat b) 
          yield ([|b|] |> bytesToStr, guess |> bytesToStr) }
 
-let histogram cs =
-    Seq.groupBy id cs
+let histogram xs =
+    Seq.groupBy id xs
     |> Map.ofSeq
     |> Map.map (fun k v -> Seq.length v)
 
@@ -103,7 +103,7 @@ let scoreGuesses (guesses: (string * string) seq) : ((string * string) * float) 
     let score hist = Map.fold (fun s k v -> s + (lookupKey k v)) 0.0 hist
     Seq.map (fun (key, guess) -> ((key, guess), histogram guess |> score)) guesses
 
-let decryptSingleXor code =
+let decryptSingleXor (code: byte seq) =
     code
     |> singleXorGuesses
     |> scoreGuesses
@@ -120,4 +120,12 @@ let aesDecrypt (code: byte []) (key: string) =
     use decryptStream = new CryptoStream(memStream, decryptor, CryptoStreamMode.Read)
     use readStream = new StreamReader(decryptStream)
     readStream.ReadToEnd()
+
+let detectECB (code: byte seq)  =
+    chunk 16 code
+    |> Seq.map Seq.toArray
+    |> histogram
+    |> Map.toSeq
+    |> Seq.map snd
+    |> Seq.fold (fun acc x -> if (x > 2 || acc) then true else false) false
 
