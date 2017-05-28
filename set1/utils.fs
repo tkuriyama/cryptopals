@@ -2,6 +2,7 @@ module Utils
 
 open System
 open System.IO
+open System.Security.Cryptography
 
 (* IO *)
 
@@ -32,8 +33,6 @@ let repeatSeq xs = seq { while true do yield! xs }
 
 (* Encodings *)
 
-let strToBytes (s: string) : byte [] = Text.Encoding.ASCII.GetBytes s
-
 let hexToByte = function
     | '0' -> 0uy  | '1' -> 1uy
     | '2' -> 2uy  | '3' -> 3uy
@@ -58,6 +57,8 @@ let bytesToStr (b: byte seq) : string =
 let bytesToHex (b: byte seq) : string =
     Seq.map (sprintf "%02x") b
     |> String.concat ""
+
+let strToBytes (s: string) : byte [] = Text.Encoding.ASCII.GetBytes s
 
 (* Hamming Distance *)
 
@@ -107,4 +108,16 @@ let decryptSingleXor code =
     |> singleXorGuesses
     |> scoreGuesses
     |> Seq.maxBy snd
+
+(* AES *)
+
+let aesDecrypt (code: byte []) (key: string) =
+    use aes = new AesManaged()
+    aes.Mode <- CipherMode.ECB
+    aes.Key <- strToBytes key
+    let decryptor = aes.CreateDecryptor(aes.Key, aes.IV)
+    use memStream = new IO.MemoryStream(code)
+    use decryptStream = new CryptoStream(memStream, decryptor, CryptoStreamMode.Read)
+    use readStream = new StreamReader(decryptStream)
+    readStream.ReadToEnd()
 
