@@ -126,6 +126,4 @@ let detectECB (code: byte seq)  =
     |> Seq.map Seq.toArray
     |> histogram
     |> Map.toSeq
-    |> Seq.map snd
-    |> Seq.fold (fun acc x -> if (x > 2 || acc) then true else false) false
-
+    |> Seq.fold (fun acc x -> if ((snd x) > 2 || acc) then true else false) false
