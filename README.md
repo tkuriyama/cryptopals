@@ -3,6 +3,8 @@
 
 ### Set 1
 
+Python 2.7 and F# 4.1
+
 	 Lines   Words            Lines   Words
       11      29 ./p1.fsx      20      49 ./p1.py
       11      36 ./p2.fsx      14      34 ./p2.py
