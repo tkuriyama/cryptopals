@@ -12,9 +12,11 @@ let lines =
 let key = "YELLOW SUBMARINE"
 
 let testEncryptAES = Utils.prepareTextECB "This is a test!!!!" |> Utils.AESEncryptECB key
-let testDecryptAES = Utils.AESDecryptECB key testEncryptAES
+let testDecryptAES = Utils.AESDecryptECB key testEncryptAES |> bytesToStr
 
 let testEncryptCBC = Utils.CBCEncrypt key Utils.IV "This is a test!!This is a test!!"
-let testDecryptCBC = Utils.CBCDecrypt key iv testEncryptAES
+let testDecryptCBC = Utils.CBCDecrypt key Utils.IV testEncryptCBC |> bytesToStr
 
-let decrypted = Utils.CBCDecrypt lines
+let decrypted =
+    Utils.CBCDecrypt key Utils.IV (Array.chunkBySize 16 lines |> Array.toList)
+    |> bytesToStr
