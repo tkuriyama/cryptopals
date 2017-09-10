@@ -63,11 +63,11 @@ let histogram xs =
 
 (* PKCS7 Padding *)
 
-let padPKCS7 (length: int) (bytes: byte seq) : byte seq =
+let padPKCS7 (length: int) (bytes: byte seq) : byte [] =
     let targetLen = length - (Seq.length bytes % length)
     let padLen = if targetLen > 0 then targetLen else Seq.length bytes
     let pad = repeat (byte padLen)
-    Seq.append bytes (Seq.take padLen pad)
+    Seq.append bytes (Seq.take padLen pad) |> Seq.toArray
         
 (* AES *)
 
@@ -88,11 +88,10 @@ let AESDecryptECB (key: string) (code: byte []) =
     readStream.ReadToEnd()
 *)
 
-let prepareTextECB text =
+let prepareTextECB (text: string) : byte [] [] =
     text
     |> strToBytes
     |> padPKCS7 16
-    |> Seq.toArray
     |> Array.chunkBySize 16
 
 let AESEncryptECB (key: string) (input: byte [] []) : byte [] =
@@ -113,12 +112,12 @@ let AESDecryptECB (key: string) (code: byte []) : byte [] =
 
 (* CBC *)
 
-let prepareTextCBC (text: string) : byte list list  =
+let prepareTextCBC (text: string) : byte [] list  =
     text
     |> strToBytes
     |> padPKCS7 16
-    |> Seq.toList
-    |> List.chunkBySize 16
+    |> Array.chunkBySize 16
+    |> Array.toList
 
 let rec applyCBCEncrypt blocks key acc : byte [] list =
     let genArray = Seq.toArray >> Array.create 1
@@ -127,7 +126,7 @@ let rec applyCBCEncrypt blocks key acc : byte [] list =
         | x::y::[] -> let encrypted = encrypt x y
                       List.rev (encrypted::acc)
         | x::y::xs -> let encrypted = encrypt x y
-                      applyCBCEncrypt (y::xs) key (encrypted::acc)
+                      applyCBCEncrypt (encrypted::xs) key (encrypted::acc)
 
 let rec applyCBCDecrypt blocks key acc : byte [] list =
     let decrypt x y = AESDecryptECB key y |> Array.ofSeq |> xor x |> Seq.toArray
@@ -137,14 +136,14 @@ let rec applyCBCDecrypt blocks key acc : byte [] list =
         | x::y::xs -> let decrypted = decrypt x y
                       applyCBCDecrypt (y::xs) key (decrypted::acc)
 
-let IV = Seq.take 16 (repeat (byte 0)) |> Seq.toList
+let IV = Seq.take 16 (repeat (byte 0)) |> Seq.toArray
 
-let CBCEncrypt (key: string) (iv: byte list) (plaintext: string) : byte [] list = 
+let CBCEncrypt (key: string) (iv: byte []) (plaintext: string) : byte [] list = 
     let blocks = iv :: (prepareTextCBC plaintext)
     applyCBCEncrypt blocks key []
    
-let CBCDecrypt (key: string) (iv: byte list) (code: byte [] list) : byte [] =
-    let blocks = (iv |> List.toArray) :: code
+let CBCDecrypt (key: string) (iv: byte []) (code: byte [] list) : byte [] =
+    let blocks = iv :: code
     applyCBCDecrypt blocks key [] |> Array.concat
     
 let detectECB (code: byte []) : bool =
