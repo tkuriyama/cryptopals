@@ -12,7 +12,7 @@ let lines =
 let key = "YELLOW SUBMARINE"
 
 let input1 = "This is a test!!!!"
-let testEncryptAES = input1 |> strToBytes |> Utils.AESEncryptECB key
+let testEncryptAES = input1 |> strToBytes |> Utils.AESEncryptECB key [||]
 let testDecryptAES = Utils.AESDecryptECB key testEncryptAES |> bytesToStr
 
 let input2 = "This is a test!!This is a test!!"

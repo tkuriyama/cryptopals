@@ -102,13 +102,15 @@ let applyAESDecryptECB (key: string) (code: byte []) : byte [] =
     decryptor.TransformBlock(code, 0, codeLen, decrypted, 0) |> ignore
     decrypted
 
-let AESEncryptECB (key: string) (input: byte []) : byte [] =
+let AESEncryptECB (key: string) (iv: byte []) (input: byte []) : byte [] =
     applyAESEncryptECB key (prepareInputECB input)
 
 let AESDecryptECB (key: string) (code: byte []) : byte [] =
     applyAESDecryptECB key code
     
 (* CBC *)
+
+let IV = Seq.take 16 (repeat (byte 0)) |> Seq.toArray
 
 let prepareInputCBC (input: byte []) : byte [] list  =
     input
@@ -139,8 +141,6 @@ let rec applyCBCDecrypt blocks key acc : byte [] list =
         | x::y::xs -> let decrypted = decrypt x y
                       applyCBCDecrypt (y::xs) key (decrypted::acc)
 
-let IV = Seq.take 16 (repeat (byte 0)) |> Seq.toArray
-
 let CBCEncrypt (key: string) (iv: byte []) (input: byte []) : byte [] = 
     let blocks = iv :: (prepareInputCBC input)
     applyCBCEncrypt blocks key [] |> Array.concat
@@ -149,9 +149,18 @@ let CBCDecrypt (key: string) (iv: byte []) (code: byte []) : byte [] =
     let blocks = iv :: (prepareCodeCBC code)
     applyCBCDecrypt blocks key [] |> Array.concat
     
-let detectECB (code: byte []) : bool =
+let detectECBOutput (code: byte []) : bool =
     Array.chunkBySize 16 code
     |> histogram
     |> Map.toSeq
     |> Seq.fold (fun acc x -> if ((snd x) > 2 || acc) then true else false) false
 
+let detectECB = 1
+
+(* Encryption Oracle *)
+
+let randKey (size: int) : byte [] =
+    let rnd = Random()
+    [|for _ in 1..size do yield rnd.Next(size) |> byte|]
+
+let ECBCBCOracle = 1
