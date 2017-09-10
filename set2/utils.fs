@@ -68,6 +68,9 @@ let padPKCS7 (length: int) (bytes: byte seq) : byte [] =
     let padLen = if targetLen > 0 then targetLen else Seq.length bytes
     let pad = repeat (byte padLen)
     Seq.append bytes (Seq.take padLen pad) |> Seq.toArray
+
+let stripPKCS7 (length: int) (code: byte []) : byte [] =
+    code
         
 (* AES *)
 
@@ -77,16 +80,6 @@ let genAES (key: string) =
     aes.Key <- strToBytes key
     aes.Padding <- PaddingMode.None
     aes
-
-(*
-let AESDecryptECB (key: string) (code: byte []) =
-    use aes = genAES key
-    let decryptor = aes.CreateDecryptor(aes.Key, aes.IV)
-    use memStream = new IO.MemoryStream(code)
-    use decryptStream = new CryptoStream(memStream, decryptor, CryptoStreamMode.Read)
-    use readStream = new StreamReader(decryptStream)
-    readStream.ReadToEnd()
-*)
 
 let prepareTextECB (text: string) : byte [] [] =
     text
@@ -119,6 +112,12 @@ let prepareTextCBC (text: string) : byte [] list  =
     |> Array.chunkBySize 16
     |> Array.toList
 
+let prepareCodeCBC(code: byte []) : byte [] list =
+    code
+    |> stripPKCS7 16
+    |> Array.chunkBySize 16
+    |> Array.toList
+
 let rec applyCBCEncrypt blocks key acc : byte [] list =
     let genArray = Seq.toArray >> Array.create 1
     let encrypt x y = xor x y |> genArray |> AESEncryptECB key
@@ -138,12 +137,12 @@ let rec applyCBCDecrypt blocks key acc : byte [] list =
 
 let IV = Seq.take 16 (repeat (byte 0)) |> Seq.toArray
 
-let CBCEncrypt (key: string) (iv: byte []) (plaintext: string) : byte [] list = 
+let CBCEncrypt (key: string) (iv: byte []) (plaintext: string) : byte [] = 
     let blocks = iv :: (prepareTextCBC plaintext)
-    applyCBCEncrypt blocks key []
+    applyCBCEncrypt blocks key [] |> Array.concat
    
-let CBCDecrypt (key: string) (iv: byte []) (code: byte [] list) : byte [] =
-    let blocks = iv :: code
+let CBCDecrypt (key: string) (iv: byte []) (code: byte []) : byte [] =
+    let blocks = iv :: (prepareCodeCBC code)
     applyCBCDecrypt blocks key [] |> Array.concat
     
 let detectECB (code: byte []) : bool =
