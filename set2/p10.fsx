@@ -17,6 +17,4 @@ let testDecryptAES = Utils.AESDecryptECB key testEncryptAES |> bytesToStr
 let testEncryptCBC = Utils.CBCEncrypt key Utils.IV "This is a test!!This is a test!!"
 let testDecryptCBC = Utils.CBCDecrypt key Utils.IV testEncryptCBC |> bytesToStr
 
-let decrypted =
-    Utils.CBCDecrypt key Utils.IV (Array.chunkBySize 16 lines |> Array.toList)
-    |> bytesToStr
+let decrypted = Utils.CBCDecrypt key Utils.IV lines |> bytesToStr
