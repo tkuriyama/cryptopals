@@ -81,13 +81,12 @@ let genAES (key: string) =
     aes.Padding <- PaddingMode.None
     aes
 
-let prepareTextECB (text: string) : byte [] [] =
-    text
-    |> strToBytes
+let prepareInputECB (input: byte []) : byte [] [] =
+    input
     |> padPKCS7 16
     |> Array.chunkBySize 16
 
-let AESEncryptECB (key: string) (input: byte [] []) : byte [] =
+let applyAESEncryptECB (key: string) (input: byte [] []) : byte [] =
     use aes = genAES key
     let encryptor = aes.CreateEncryptor(aes.Key, aes.IV)
     [| for block in input do
@@ -95,7 +94,7 @@ let AESEncryptECB (key: string) (input: byte [] []) : byte [] =
            encryptor.TransformBlock(block, 0, 16, encrypted, 0) |> ignore
            yield! encrypted |]
 
-let AESDecryptECB (key: string) (code: byte []) : byte [] =
+let applyAESDecryptECB (key: string) (code: byte []) : byte [] =
     let aes = genAES key
     let decryptor = aes.CreateDecryptor(aes.Key, aes.IV)
     let codeLen = Array.length code
@@ -103,11 +102,16 @@ let AESDecryptECB (key: string) (code: byte []) : byte [] =
     decryptor.TransformBlock(code, 0, codeLen, decrypted, 0) |> ignore
     decrypted
 
+let AESEncryptECB (key: string) (input: byte []) : byte [] =
+    applyAESEncryptECB key (prepareInputECB input)
+
+let AESDecryptECB (key: string) (code: byte []) : byte [] =
+    applyAESDecryptECB key code
+    
 (* CBC *)
 
-let prepareTextCBC (text: string) : byte [] list  =
-    text
-    |> strToBytes
+let prepareInputCBC (input: byte []) : byte [] list  =
+    input
     |> padPKCS7 16
     |> Array.chunkBySize 16
     |> Array.toList
@@ -120,7 +124,7 @@ let prepareCodeCBC(code: byte []) : byte [] list =
 
 let rec applyCBCEncrypt blocks key acc : byte [] list =
     let genArray = Seq.toArray >> Array.create 1
-    let encrypt x y = xor x y |> genArray |> AESEncryptECB key
+    let encrypt x y = xor x y |> genArray |> applyAESEncryptECB key
     match blocks with
         | x::y::[] -> let encrypted = encrypt x y
                       List.rev (encrypted::acc)
@@ -128,7 +132,7 @@ let rec applyCBCEncrypt blocks key acc : byte [] list =
                       applyCBCEncrypt (encrypted::xs) key (encrypted::acc)
 
 let rec applyCBCDecrypt blocks key acc : byte [] list =
-    let decrypt x y = AESDecryptECB key y |> Array.ofSeq |> xor x |> Seq.toArray
+    let decrypt x y = applyAESDecryptECB key y |> Array.ofSeq |> xor x |> Seq.toArray
     match blocks with
         | x::y::[] -> let decrypted = decrypt x y
                       List.rev (decrypted::acc)
@@ -137,8 +141,8 @@ let rec applyCBCDecrypt blocks key acc : byte [] list =
 
 let IV = Seq.take 16 (repeat (byte 0)) |> Seq.toArray
 
-let CBCEncrypt (key: string) (iv: byte []) (plaintext: string) : byte [] = 
-    let blocks = iv :: (prepareTextCBC plaintext)
+let CBCEncrypt (key: string) (iv: byte []) (input: byte []) : byte [] = 
+    let blocks = iv :: (prepareInputCBC input)
     applyCBCEncrypt blocks key [] |> Array.concat
    
 let CBCDecrypt (key: string) (iv: byte []) (code: byte []) : byte [] =

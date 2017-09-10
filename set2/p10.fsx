@@ -11,10 +11,12 @@ let lines =
 
 let key = "YELLOW SUBMARINE"
 
-let testEncryptAES = Utils.prepareTextECB "This is a test!!!!" |> Utils.AESEncryptECB key
+let input1 = "This is a test!!!!"
+let testEncryptAES = input1 |> strToBytes |> Utils.AESEncryptECB key
 let testDecryptAES = Utils.AESDecryptECB key testEncryptAES |> bytesToStr
 
-let testEncryptCBC = Utils.CBCEncrypt key Utils.IV "This is a test!!This is a test!!"
+let input2 = "This is a test!!This is a test!!"
+let testEncryptCBC = input2 |> strToBytes |> Utils.CBCEncrypt key Utils.IV
 let testDecryptCBC = Utils.CBCDecrypt key Utils.IV testEncryptCBC |> bytesToStr
 
 let decrypted = Utils.CBCDecrypt key Utils.IV lines |> bytesToStr
