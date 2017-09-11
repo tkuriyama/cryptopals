@@ -177,3 +177,8 @@ let ECBCBCOracle (rnd: Random) =
         | _ -> let CBC code = CBCEncrypt key IV (Array.concat [|pre; code; post|])
                CBC
         
+let ECBOracle (pre: byte []) =
+    let key = randKey 16 |> bytesToStr
+    let IV = randKey 16
+    let ECB code = AESEncryptECB key IV (Array.concat [|pre; code|])
+    ECB
