@@ -148,19 +148,32 @@ let CBCEncrypt (key: string) (iv: byte []) (input: byte []) : byte [] =
 let CBCDecrypt (key: string) (iv: byte []) (code: byte []) : byte [] =
     let blocks = iv :: (prepareCodeCBC code)
     applyCBCDecrypt blocks key [] |> Array.concat
-    
+
+(* Encryption Oracle *)
+
 let detectECBOutput (code: byte []) : bool =
     Array.chunkBySize 16 code
     |> histogram
     |> Map.toSeq
     |> Seq.fold (fun acc x -> if ((snd x) > 2 || acc) then true else false) false
 
-let detectECB = 1
-
-(* Encryption Oracle *)
+let detectECB encrypt : bool =
+    [| for _ in 1 .. 64 do yield byte 0 |]
+    |> encrypt
+    |> detectECBOutput
 
 let randKey (size: int) : byte [] =
     let rnd = Random()
-    [|for _ in 1..size do yield rnd.Next(size) |> byte|]
+    [|for _ in 1..size do yield rnd.Next 256 |> byte|]
 
-let ECBCBCOracle = 1
+let ECBCBCOracle (rnd: Random) =
+    let key = randKey 16 |> bytesToStr
+    let IV = randKey 16
+    let pre = randKey (5 + rnd.Next 6)
+    let post = randKey (5 + rnd.Next 6)
+    match rnd.Next 2 with
+        | 0 -> let ECB code = AESEncryptECB key IV (Array.concat [|pre; code; post|])
+               ECB
+        | _ -> let CBC code = CBCEncrypt key IV (Array.concat [|pre; code; post|])
+               CBC
+        
