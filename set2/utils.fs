@@ -176,9 +176,32 @@ let ECBCBCOracle (rnd: Random) =
                ECB
         | _ -> let CBC code = CBCEncrypt key IV (Array.concat [|pre; code; post|])
                CBC
-        
+
+(* ECB Oracle and byte-at-a-time Decryption *)
+
 let ECBOracle (pre: byte []) =
     let key = randKey 16 |> bytesToStr
     let IV = randKey 16
-    let ECB code = AESEncryptECB key IV (Array.concat [|pre; code|])
+    let ECB code = AESEncryptECB key IV (Array.concat [|code; pre|])
     ECB
+
+let rec decodeBlock oracle blockInd prev charOffset blockSize found : byte [] =
+    match charOffset with
+        | blockSize -> found |> List.rev |> List.toArray
+        | _         -> let input = prev.[0..blockSize-charOffset-1]
+                       let code = oracle input
+                       let codeMap = genMap input
+                       let c = decodeChar c blockInd codeMap
+                       decodeBlock oracle blockInd prev (charOffset+1) blockSize (c::found)
+
+let rec decodeBlocks oracle blockInd numBlocks blockSize prev found : byte [] [] =
+    match blockInd with
+        | numBlocks  -> found |> List.rev |> List.toArray
+        | _          -> let b = decodeBlock oracle blockInd prev 1 blockSize []
+                        decodeBlocks oracle (blockInd+1) numBlocks b (b::found)
+
+let decryptECBOracle oracle blockSize : byte [] =
+    let numBlocks = oracle [||] |> Array.length / blockSize
+    let prevBlock = repeat (byte 0) |> Seq.take blockSize |> Seq.toArray
+    decodeBlocks oracle 0 numBlocks blockSize prevBlock []
+    |> Array.concat
