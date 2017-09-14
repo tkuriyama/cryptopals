@@ -13,8 +13,8 @@ let oracle =
     Convert.FromBase64String(code)
     |> Utils.ECBOracle
 
-let verifyBlockSize oracle =
-    let rec findKeySize size =
+let verifyBlockSize oracle : int option =
+    let rec findKeySize size : int option =
         let keyRepeated : bool =
             let code : byte [] =
                 oracle [| for _ in 0 .. size*2 do yield 0 |> byte |]
@@ -27,6 +27,4 @@ let verifyBlockSize oracle =
 
 let blockSize = verifyBlockSize oracle
 let verifyECB = Utils.detectECB oracle
-let text = Utils.decryptECBOracle oracle
-
-
+let text = Utils.decryptECBOracle oracle blockSize
