@@ -185,19 +185,24 @@ let ECBOracle (pre: byte []) =
     let ECB code = AESEncryptECB key IV (Array.concat [|code; pre|])
     ECB
 
-let rec decodeBlock oracle blockInd prev charOffset blockSize found : byte [] =
-    match charOffset with
-        | blockSize -> found |> List.rev |> List.toArray
-        | _         -> let input = prev.[0..blockSize-charOffset-1]
+let genMap oracle guess : map =
+    [ for n in [0 .. 255] do yield
+      (Array.concat [| guess; byte n|] |> oracle, byte n) ]
+    |> Map.ofList
+
+let rec decodeBlock oracle blockInd guess ind blockSize : byte [] =
+    match ind with
+        | blockSize -> guess |> List.rev |> List.toArray
+        | _         -> let guess = guess.[1..]
+                       let guessMap = genMap oracle guess
                        let code = oracle input
-                       let codeMap = genMap input
                        let c = decodeChar c blockInd codeMap
-                       decodeBlock oracle blockInd prev (charOffset+1) blockSize (c::found)
+                       decodeBlock oracle blockInd prev ind blockSize (c::found)
 
 let rec decodeBlocks oracle blockInd numBlocks blockSize prev found : byte [] [] =
     match blockInd with
         | numBlocks  -> found |> List.rev |> List.toArray
-        | _          -> let b = decodeBlock oracle blockInd prev 1 blockSize []
+        | _          -> let b = decodeBlock oracle blockInd prev 1 blockSize
                         decodeBlocks oracle (blockInd+1) numBlocks b (b::found)
 
 let decryptECBOracle oracle blockSize : byte [] =
