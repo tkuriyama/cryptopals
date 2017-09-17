@@ -179,10 +179,11 @@ let ECBCBCOracle (rnd: Random) =
 
 (* ECB Oracle and byte-at-a-time Decryption *)
 
-let ECBOracle (pre: byte []) =
+let ECBOracle (rand: bool) (post: byte []) =
     let key = randKey 16 |> bytesToStr
     let IV = randKey 16
-    let ECB code = AESEncryptECB key IV (Array.concat [|code; pre|])
+    let pre = if rand then randKey 16 else [||]
+    let ECB code = AESEncryptECB key IV (Array.concat [|pre; code; post|])
     ECB
 
 let genMap oracle (guess: byte []) blockSize : Map<byte [], byte> =

@@ -13,7 +13,7 @@ let code =
 
 let oracle =
     Convert.FromBase64String(code)
-    |> Utils.ECBOracle
+    |> Utils.ECBOracle false
 
 let verifyBlockSize oracle : int option =
     let rec findKeySize size : int option =
