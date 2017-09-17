@@ -213,8 +213,9 @@ let rec decodeBlocks oracle numBlocks blockSize (prev: byte []) found : byte [] 
     else let b = decodeBlock oracle ind prev prev 1 blockSize
          decodeBlocks oracle numBlocks blockSize b (b::found)
 
-let stripPadding arr : byte [] =
-    [| for c in arr do if int c > 1 then yield c |] 
+let stripPadding lastBlock (arr: byte []) : byte [] =
+    [| for c in arr.[lastBlock..] do if int c > 1 then yield c |] 
+    |> Array.append arr.[..(lastBlock - 1)]
 
 let decryptECBOracle oracle blockSize : byte [] =
     match blockSize with
@@ -224,4 +225,4 @@ let decryptECBOracle oracle blockSize : byte [] =
                     decodeBlocks oracle numBlocks n prevBlock []
                     |> List.toArray
                     |> Array.concat
-                    |> stripPadding
+                    |> stripPadding ((numBlocks - 1) * n)
