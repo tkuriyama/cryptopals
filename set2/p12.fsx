@@ -7,7 +7,8 @@ open System.Text
 let code =
     ["Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkg";
      "aGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBq";
-     "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg"]
+     "dXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUg";
+     "YnkK"]
     |> String.concat ""
 
 let oracle =
@@ -28,4 +29,4 @@ let verifyBlockSize oracle : int option =
 
 let blockSize = verifyBlockSize oracle
 let verifyECB = Utils.detectECB oracle
-let text = Utils.decryptECBOracle oracle blockSize
+let text = Utils.decryptECBOracle oracle blockSize |> Utils.bytesToStr
