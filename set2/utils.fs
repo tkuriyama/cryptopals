@@ -185,28 +185,36 @@ let ECBOracle (pre: byte []) =
     let ECB code = AESEncryptECB key IV (Array.concat [|code; pre|])
     ECB
 
-let genMap oracle guess : map =
-    [ for n in [0 .. 255] do yield
-      (Array.concat [| guess; byte n|] |> oracle, byte n) ]
+let genMap oracle guess : Map<byte [], byte> =
+    [for n in [0 .. 255] do yield (Array.append guess [|byte n|], byte n)]
     |> Map.ofList
 
-let rec decodeBlock oracle blockInd guess ind blockSize : byte [] =
+let decodeChar (code: byte []) ind guessMap blockSize : byte =
+    let start = ind - 1
+    let block = code.[(start*blockSize)..(start*blockSize + blockSize)]
+    Map.find block guessMap
+
+let rec decodeBlock oracle blockInd (guess: byte []) ind blockSize : byte []  =
     match ind with
-        | blockSize -> guess |> List.rev |> List.toArray
-        | _         -> let guess = guess.[1..]
-                       let guessMap = genMap oracle guess
-                       let code = oracle input
-                       let c = decodeChar c blockInd codeMap
-                       decodeBlock oracle blockInd prev ind blockSize (c::found)
+        | blockSize -> guess
+        | _         -> let input = guess.[ind..]
+                       let guessMap = genMap oracle input
+                       let c = decodeChar (oracle input) blockInd guessMap blockSize
+                       let newGuess = Array.append input [|c|]
+                       decodeBlock oracle blockInd newGuess ind blockSize
 
-let rec decodeBlocks oracle blockInd numBlocks blockSize prev found : byte [] [] =
-    match blockInd with
-        | numBlocks  -> found |> List.rev |> List.toArray
-        | _          -> let b = decodeBlock oracle blockInd prev 1 blockSize
-                        decodeBlocks oracle (blockInd+1) numBlocks b (b::found)
+let rec decodeBlocks oracle numBlocks blockSize (prev: byte []) found : byte [] list =
+    let ind = List.length found
+    match ind with
+        | numBlocks  -> found |> List.rev 
+        | _          -> let b = decodeBlock oracle ind prev 1 blockSize
+                        decodeBlocks oracle numBlocks blockSize b (b::found)
 
-let decryptECBOracle oracle blockSize : byte [] =
-    let numBlocks = oracle [||] |> Array.length / blockSize
-    let prevBlock = repeat (byte 0) |> Seq.take blockSize |> Seq.toArray
-    decodeBlocks oracle 0 numBlocks blockSize prevBlock []
-    |> Array.concat
+let decryptECBOracle oracle (blockSize: int option) : byte [] =
+    match blockSize with
+        | None   -> [||]
+        | Some n -> let numBlocks = oracle [||] |> Array.length |> (/) n
+                    let prevBlock = repeat (byte 0) |> Seq.take n |> Seq.toArray
+                    decodeBlocks oracle numBlocks n prevBlock []
+                    |> List.toArray
+                    |> Array.concat
