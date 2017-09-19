@@ -200,7 +200,7 @@ let decodeChar (code: byte []) blockInd guessMap blockSize : byte =
         Map.find code.[blockStart..blockEnd] guessMap
     with
         | :? System.Collections.Generic.KeyNotFoundException ->
-                 byte 0
+G                 byte 0
 
 let rec decodeBlock oracle blockInd (prev: byte []) (guess: byte []) ind blockSize : byte []  =
     if ind = (blockSize + 1) then guess
@@ -216,8 +216,13 @@ let rec decodeBlocks oracle numBlocks blockSize (prev: byte []) found : byte [] 
          decodeBlocks oracle numBlocks blockSize b (b::found)
 
 let stripPadding lastBlock (arr: byte []) : byte [] =
-    [| for c in arr.[lastBlock..] do if int c > 1 then yield c |] 
+    [| for b in arr.[lastBlock..] do if int b > 1 then yield c |] 
     |> Array.append arr.[..(lastBlock - 1)]
+
+let valid (text: byte []) : bool =
+    [| for b in text do if int b > 1 then yield b |]
+    |> Array.length
+    |> (>) <| 0
 
 let decryptECBOracle oracle blockSize : byte [] =
     match blockSize with

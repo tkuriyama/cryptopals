@@ -15,16 +15,11 @@ let oracle =
     Convert.FromBase64String(code)
     |> Utils.ECBOracle true
 
-let valid (text: byte []) : bool =
-    [| for b in text do if int b > 1 then yield b |]
-    |> Array.length
-    |> (>) <| 
-
 let decrypt oracle =
     let rec trydecrypt n oracle blockSize =
         match n with
             | 32  -> [||]
             | _   -> let text = decryptECBOracle oracle blockSize n
-                     if valid text then tryDecrypt (n + 1) oracle blockSize
+                     if Utils.valid text then tryDecrypt (n + 1) oracle blockSize
                      else text |> Utils.bytesToStr
     tryDecrypt 0 oracle 16 [||]
