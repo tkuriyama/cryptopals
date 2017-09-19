@@ -180,9 +180,10 @@ let ECBCBCOracle (rnd: Random) =
 (* ECB Oracle and byte-at-a-time Decryption *)
 
 let ECBOracle (rand: bool) (post: byte []) =
+    let rnd = new Random()
     let key = randKey 16 |> bytesToStr
     let IV = randKey 16
-    let pre = if rand then randKey 16 else [||]
+    let pre = if rand then randKey (1 + rnd.Next 15) else [||]
     let ECB code = AESEncryptECB key IV (Array.concat [|pre; code; post|])
     ECB
 
