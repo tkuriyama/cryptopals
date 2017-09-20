@@ -227,10 +227,10 @@ let stripPadding lastBlock (arr: byte []) : byte [] =
     [| for b in arr.[lastBlock..] do if int b > 1 then yield b |] 
     |> Array.append arr.[..(lastBlock - 1)]
 
-let valid (text: byte []) : bool =
+let valid (text: byte []) size : bool =
     [| for b in text do if int b > 1 then yield b |]
     |> Array.length
-    |> (>) <| 0
+    |> (>) <| (size / 2)
 
 let decryptECBOracle oracle blockSize offset : byte [] =
     match blockSize with
