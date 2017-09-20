@@ -13,13 +13,19 @@ let code =
 
 let oracle =
     Convert.FromBase64String(code)
-    |> Utils.ECBOracle true
+    |> Utils.ECBOracleOffset true
 
-let decrypt oracle =
-    let rec trydecrypt n oracle blockSize =
-        match n with
-            | 32  -> [||]
-            | _   -> let text = decryptECBOracle oracle blockSize n
-                     if Utils.valid text then tryDecrypt (n + 1) oracle blockSize
-                     else text |> Utils.bytesToStr
-    tryDecrypt 0 oracle 16 [||]
+let decrypt oracle (blockSize: int option) : byte [] =
+    let rec tryDecrypt noiseSize oracle blockSize =
+        match noiseSize, blockSize with
+            | _, None   -> [||]
+            | 15, _     -> [||]
+            | n, Some b -> let offset = (float n) / (float b) |> ceil |> int
+                           let noise = [| for _ in [1..n] do yield byte 0 |]
+                           let text = decryptECBOracle (oracle noise) blockSize offset
+                           printfn "%A" text
+                           if Utils.valid text then text 
+                           else tryDecrypt (n + 1) oracle blockSize
+    tryDecrypt 0 oracle blockSize
+
+decrypt oracle (Some 16) |> Utils.bytesToStr

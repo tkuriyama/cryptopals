@@ -187,6 +187,14 @@ let ECBOracle (rand: bool) (post: byte []) =
     let ECB code = AESEncryptECB key IV (Array.concat [|pre; code; post|])
     ECB
 
+let ECBOracleOffset (rand: bool) (post: byte []) =
+    let rnd = new Random()
+    let key = randKey 16 |> bytesToStr
+    let IV = randKey 16
+    let pre = if rand then randKey (1 + rnd.Next 15) else [||]
+    let ECB noise code = AESEncryptECB key IV (Array.concat [|pre; noise; code; post|])
+    ECB
+
 let genMap oracle (guess: byte []) blockSize : Map<byte [], byte> =
     let output n = Array.append guess [|byte n|] |> oracle
     let takeFirst (arr: byte []) = arr.[..(blockSize - 1)]
