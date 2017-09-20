@@ -200,7 +200,7 @@ let decodeChar (code: byte []) blockInd guessMap blockSize : byte =
         Map.find code.[blockStart..blockEnd] guessMap
     with
         | :? System.Collections.Generic.KeyNotFoundException ->
-G                 byte 0
+                 byte 0
 
 let rec decodeBlock oracle blockInd (prev: byte []) (guess: byte []) ind blockSize : byte []  =
     if ind = (blockSize + 1) then guess
@@ -209,14 +209,14 @@ let rec decodeBlock oracle blockInd (prev: byte []) (guess: byte []) ind blockSi
          let newGuess = Array.append guess.[1..] [|c|]
          decodeBlock oracle blockInd prev newGuess (ind + 1) blockSize
 
-let rec decodeBlocks oracle numBlocks blockSize (prev: byte []) found : byte [] list =
-    let ind = List.length found
+let rec decodeBlocks oracle numBlocks blockSize (prev: byte []) found offset : byte [] list =
+    let ind = List.length found |> (+) offset
     if ind = numBlocks then found |> List.rev
-    else let b = decodeBlock oracle ind prev prev 1 blockSize
-         decodeBlocks oracle numBlocks blockSize b (b::found)
+    else let b = decodeBlock oracle ind prev prev 1 blockSize 
+         decodeBlocks oracle numBlocks blockSize b (b::found) offset
 
 let stripPadding lastBlock (arr: byte []) : byte [] =
-    [| for b in arr.[lastBlock..] do if int b > 1 then yield c |] 
+    [| for b in arr.[lastBlock..] do if int b > 1 then yield b |] 
     |> Array.append arr.[..(lastBlock - 1)]
 
 let valid (text: byte []) : bool =
@@ -224,12 +224,12 @@ let valid (text: byte []) : bool =
     |> Array.length
     |> (>) <| 0
 
-let decryptECBOracle oracle blockSize : byte [] =
+let decryptECBOracle oracle blockSize offset : byte [] =
     match blockSize with
         | None   -> [||]
         | Some n -> let numBlocks = oracle [||] |> Array.length |> (/) <| n
                     let prevBlock = repeat (byte 0) |> Seq.take n |> Seq.toArray
-                    decodeBlocks oracle numBlocks n prevBlock []
+                    decodeBlocks oracle numBlocks n prevBlock [] offset
                     |> List.toArray
                     |> Array.concat
                     |> stripPadding ((numBlocks - 1) * n)

@@ -29,4 +29,4 @@ let verifyBlockSize oracle : int option =
 
 let blockSize = verifyBlockSize oracle
 let verifyECB = Utils.detectECB oracle
-let text = Utils.decryptECBOracle oracle blockSize |> Utils.bytesToStr
+let text = Utils.decryptECBOracle oracle blockSize 0 |> Utils.bytesToStr
