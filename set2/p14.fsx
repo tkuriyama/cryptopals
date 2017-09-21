@@ -15,17 +15,19 @@ let oracle =
     Convert.FromBase64String(code)
     |> Utils.ECBOracleOffset true
 
-let decrypt oracle (blockSize: int option) : byte [] =
-    let rec tryDecrypt noiseSize oracle blockSize =
-        match noiseSize, blockSize with
-            | _, None   -> [||]
-            | 10, _     -> [||]
-            | n, Some b -> let offset = (float n) / (float b) |> ceil |> int
-                           let noise = [| for _ in [1..n] do yield byte 0 |]
-                           let text = decryptECBOracle (oracle noise) blockSize offset
-                           printfn "%A" text
-                           if Utils.valid text (Array.length text) then text 
-                           else tryDecrypt (n + 1) oracle blockSize
-    tryDecrypt 0 oracle blockSize
+let pairs =
+    [ for offset in [0..2] do for noise in [0..15] do
+          yield (offset, noise) ]
 
-decrypt oracle (Some 16) |> Utils.bytesToStr
+let rec decrypt oracle pairs (blockSize: int option) : byte [] =
+    match pairs, blockSize with
+        | _,  None -> [||]
+        | [], _    -> [||]
+        | (o, n)::xs, Some b ->
+            let noise = [| for _ in [1..n] do yield byte 0 |]
+            let text = decryptECBOracle (oracle noise) blockSize o
+            if Utils.valid text (Array.length text) then text 
+            else decrypt oracle xs blockSize
+
+let text = decrypt oracle pairs (Some 16) |> Utils.bytesToStr
+

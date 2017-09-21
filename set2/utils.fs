@@ -190,7 +190,7 @@ let ECBOracleOffset (rand: bool) (post: byte []) =
     let rnd = new Random()
     let key = randKey 16 |> bytesToStr
     let IV = randKey 16
-    let pre = if rand then randKey 16 else [||]// (1 + rnd.Next 5) else [||]
+    let pre = if rand then randKey (1 + rnd.Next 15) else [||]
     let ECB noise code = AESEncryptECB key IV (Array.concat [|pre; noise; code; post|])
     ECB
 
@@ -220,7 +220,6 @@ let rec decodeBlock oracle blockInd (prev: byte []) (guess: byte []) ind blockSi
 
 let rec decodeBlocks oracle numBlocks blockSize (prev: byte []) found offset : byte [] list =
     let ind = List.length found |> (+) offset
-    printfn "%d, %d" ind numBlocks
     if ind = numBlocks then found |> List.rev
     else let b = decodeBlock oracle ind prev prev 1 blockSize offset
          decodeBlocks oracle numBlocks blockSize b (b::found) offset
