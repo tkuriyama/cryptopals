@@ -190,13 +190,15 @@ let ECBOracleOffset (rand: bool) (post: byte []) =
     let rnd = new Random()
     let key = randKey 16 |> bytesToStr
     let IV = randKey 16
-    let pre = if rand then randKey (1 + rnd.Next 5) else [||]
+    let pre = if rand then randKey 16 else [||]// (1 + rnd.Next 5) else [||]
     let ECB noise code = AESEncryptECB key IV (Array.concat [|pre; noise; code; post|])
     ECB
 
-let genMap oracle (guess: byte []) blockSize : Map<byte [], byte> =
+let genMap oracle (guess: byte []) blockSize offset : Map<byte [], byte> =
     let output n = Array.append guess [|byte n|] |> oracle
-    let takeFirst (arr: byte []) = arr.[..(blockSize - 1)]
+    let blockStart = offset * blockSize
+    let blockEnd = blockStart + (blockSize - 1)
+    let takeFirst (arr: byte []) = arr.[blockStart..blockEnd]
     [for n in [0 .. 255] do yield (output n |> takeFirst, byte n)]
     |> Map.ofList
 
@@ -209,17 +211,18 @@ let decodeChar (code: byte []) blockInd guessMap blockSize : byte =
         | :? System.Collections.Generic.KeyNotFoundException ->
                  byte 0
 
-let rec decodeBlock oracle blockInd (prev: byte []) (guess: byte []) ind blockSize : byte []  =
+let rec decodeBlock oracle blockInd (prev: byte []) (guess: byte []) ind blockSize offset : byte []  =
     if ind = (blockSize + 1) then guess
-    else let guessMap = genMap oracle guess.[1..] blockSize
+    else let guessMap = genMap oracle guess.[1..] blockSize offset
          let c = decodeChar (oracle prev.[ind..]) blockInd guessMap blockSize
          let newGuess = Array.append guess.[1..] [|c|]
-         decodeBlock oracle blockInd prev newGuess (ind + 1) blockSize
+         decodeBlock oracle blockInd prev newGuess (ind + 1) blockSize offset
 
 let rec decodeBlocks oracle numBlocks blockSize (prev: byte []) found offset : byte [] list =
     let ind = List.length found |> (+) offset
+    printfn "%d, %d" ind numBlocks
     if ind = numBlocks then found |> List.rev
-    else let b = decodeBlock oracle ind prev prev 1 blockSize 
+    else let b = decodeBlock oracle ind prev prev 1 blockSize offset
          decodeBlocks oracle numBlocks blockSize b (b::found) offset
 
 let stripPadding lastBlock (arr: byte []) : byte [] =
