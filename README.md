@@ -1,7 +1,7 @@
 
-## Solutions to Cryptopals challenges in Python and F# (https://cryptopals.com/).
+### Solutions to Cryptopals challenges in Python and F# (https://cryptopals.com/).
 
-### Set 1
+#### Set 1**
 
 Python 2.7 and F# 4.1
 
@@ -17,4 +17,18 @@ Python 2.7 and F# 4.1
      131     625 ./utils.fs   120     538 ./utils.py
      252    1003 total        309    1182 total
 
+#### Set 2
 
+Python 2.7 and F# 4.1
+	 
+    Lines	Words             Lines  Words
+       8      23 p9.fsx        11      26 p9.py
+      22      86 p10.fsx       17      45 p10.py
+       9      29 p11.fsx       52     178 p11.py
+      32     111 p12.fsx       37     122 p12.py
+      41     175 p13.fsx       56     175 p13.py
+      33     118 p14.fsx       26      78 p14.py
+       9      44 p15.fsx       26      92 p15.yp
+      43     225 p16.fsx       74     227 p16.py
+     250    1319 utils.fs     326    1341 utils.py
+     447    2130 total	      625    2284 total
