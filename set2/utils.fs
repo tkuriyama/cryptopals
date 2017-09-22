@@ -232,7 +232,7 @@ let rec decodeBlocks oracle numBlocks blockSize (prev: byte []) found offset : b
 
 let stripPadding (arr: byte []) : byte [] =
     let last = Array.length arr - 16
-    [| for b in arr.[last..] do if int b > 16 then yield b |] 
+    [| for b in arr.[last..] do if int b > 2 then yield b |] 
     |> Array.append arr.[..last]
 
 let valid (text: byte []) size : bool =
@@ -248,4 +248,4 @@ let decryptECBOracle oracle blockSize offset : byte [] =
                     decodeBlocks oracle numBlocks n prevBlock [] offset
                     |> List.toArray
                     |> Array.concat
-                    |> stripPadding 
+                    |> stripPadding
