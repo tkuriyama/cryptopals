@@ -20,15 +20,22 @@ let profile_for (email: string) =
     let profile = encodeEmail email
     String.concat "" ["email="; profile.["email"];
                       "&uid="; profile.["uid"];
-                      "&role="; profile.["role"]]
+                      "&role="; profile.["role"]]        
 
 let key = Utils.randKey 16 |> Utils.bytesToStr
 let iv = Utils.randKey 16
-let profile = profile_for "test@test.com"
-let encrypted = Utils.AESEncryptECB key iv (profile |> Utils.strToBytes)
+let encryptProfile key iv profile =
+    profile |> Utils.strToBytes |> Utils.AESEncryptECB key iv
+
+let encrypted = profile_for "test@test.com" |> encryptProfile key iv
 let decrypted = Utils.AESDecryptECB key encrypted |> Utils.bytesToStr
 
+
+let genAdmin =
+    let p1 = profile_for "test@test.com" |> encryptProfile key iv
+    let p2 = profile_for "aaaaaaaaaaadmin" |> encryptProfile key iv
+    let e = Array.length p1 - 17
+    Array.concat [| p1.[..e]; p2.[16..31] |]
+
 let adminProfile =
-    genAdmin key
-    |> Utils.AESDecryptECB key
-    |> Utils.bytesToStr
+    genAdmin |> Utils.AESDecryptECB key |> Utils.bytesToStr
