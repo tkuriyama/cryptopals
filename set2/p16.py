@@ -57,7 +57,7 @@ def hack_CBC(key):
 def main():
     """Main."""
     key = utils.gen_rand_key()
-    text = bytearray('testinput')
+    text = bytearray('testinput;admin=True;')
     
     code = encrypt_CBC(text, key)
     print '> encrypted\n', code
