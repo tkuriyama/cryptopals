@@ -69,8 +69,14 @@ let padPKCS7 (length: int) (bytes: byte seq) : byte [] =
     let pad = repeat (byte padLen)
     Seq.append bytes (Seq.take padLen pad) |> Seq.toArray
 
-let stripPKCS7 (length: int) (code: byte []) : byte [] =
-    code
+let stripPKCS7 (code: byte []) : byte [] =
+    let arr = Array.rev code
+    let rec strip (arr: byte []) padding ctr : byte [] =
+        let c = int arr.[0]
+        if c <> padding then failwith "bad padding"
+        elif ctr < c then strip arr.[1..] padding (ctr + 1)
+        else arr.[1..] |> Array.rev
+    strip arr (int arr.[0]) 1
         
 (* AES *)
 
@@ -120,7 +126,7 @@ let prepareInputCBC (input: byte []) : byte [] list  =
 
 let prepareCodeCBC(code: byte []) : byte [] list =
     code
-    |> stripPKCS7 16
+    |> stripPKCS7 
     |> Array.chunkBySize 16
     |> Array.toList
 
