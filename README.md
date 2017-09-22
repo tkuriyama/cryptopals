@@ -1,7 +1,7 @@
 
 ### Solutions to Cryptopals challenges in Python and F#
 
-Link to problems [here] (https://cryptopals.com/). Notes [in this blog](http://learning.tarokuriyama.com/search?q=cryptopals&max-results=20&by-date=truex).
+Link to problems [here](https://cryptopals.com/). Notes [in this blog](http://learning.tarokuriyama.com/search?q=cryptopals&max-results=20&by-date=truex).
 
 <hr> 
 
