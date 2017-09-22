@@ -126,7 +126,6 @@ let prepareInputCBC (input: byte []) : byte [] list  =
 
 let prepareCodeCBC(code: byte []) : byte [] list =
     code
-    |> stripPKCS7 
     |> Array.chunkBySize 16
     |> Array.toList
 
@@ -153,7 +152,7 @@ let CBCEncrypt (key: string) (iv: byte []) (input: byte []) : byte [] =
    
 let CBCDecrypt (key: string) (iv: byte []) (code: byte []) : byte [] =
     let blocks = iv :: (prepareCodeCBC code)
-    applyCBCDecrypt blocks key [] |> Array.concat
+    applyCBCDecrypt blocks key [] |> Array.concat |> stripPKCS7
 
 (* Encryption Oracle *)
 
