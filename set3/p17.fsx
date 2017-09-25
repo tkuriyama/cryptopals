@@ -29,17 +29,16 @@ let paddingOracle (code: byte []) : bool =
 let testDecrypt = testEncrypt |> paddingOracle
 
 let decryptByte code ind1 ind2 offset =
-    1
+    
 
-let rec decryptBlock (code: byte []) ind1 ind2 offset (found: byte []) : byte [] =
+let rec decryptBlock ind1 ind2 offset (found: byte []) (code: byte []): byte [] =
     match offset with
         | -1 -> found |> Array.rev
         | _  -> let b = decryptByte code ind1 ind2 offset
-                decryptBlock code (ind1+1) (ind2+1) (offset-1) (Array.append found [|b|])
+                decryptBlock code ind1 ind2 (offset-1) (Array.append found [|b|])
 
 let CBCPaddingDecrypt (code: byte []) =
     let numBlocks = Array.chunkBySize 16 code |> Array.length
     [| for i in [0..(numBlocks-2)] do yield
-           decryptBlock code (i*16) ((i+1)*16) 15 []|]
+           Array.append iv code |> decryptBlock (i*16) ((i+1)*16) 15 [] |]
     |> Array.concat
-    
