@@ -28,25 +28,50 @@ let paddingOracle (code: byte []) : bool =
     
 let testDecrypt = testEncrypt |> paddingOracle
 
+// padding oracle attack
+
+let genGuesses code ind1 offset: byte [] [] = 
+    let genGuess n =
+        Utils.xor [|code.[ind1+offset]|] [|byte n|]
+        |> Utils.xor [|byte (16-offset)|]
+        |> Array.ofSeq
+    [| for i in [0..255] do yield
+           Array.concat [| code.[ind1..(ind1+offset-1)];
+                           [| genGuess n |];
+                           found;
+                           code.[(ind1+16)..(ind1+31) |] |]
+     
+let rec evalGuesses ind guesses : byte =
+    match guesses with
+        | x::[] -> x.[ind]
+        | x::xs -> if paddingOracle x is true then x.[ind]
+                   else evalGuesses offset xs 
+
+let disambiguate code ind1 b : byte [] =
+    [||]
+
+let decryptLastByte code ind1 =
+    genGuesses code ind1 15 [||]
+    |> evalGuesses (ind1+31)
+    |> disambiguate code ind1 
+    
 let genPadding n = [| for n in [1..n] do yield byte n |]
 
-let decryptLastByte code ind1 ind2 =
-    1
-    
-let decryptByte code ind1 ind2 offset found =
-    1
+let decryptByte code ind1 offset found =
+    genGuesses code ind1 offset found
+    |> evalGuesses (ind1+16+offset)
 
-let rec decryptBlock ind1 ind2 offset (found: byte []) (code: byte []): byte [] =
+let rec decryptBlock ind1 offset (found: byte []) (code: byte []): byte [] =
     match offset with
-        | -1 -> found |> Array.rev
+        | -1 -> found
         | 15 -> let bs = decryptLastByte code ind1 ind2
                 let n = Array.length b
-                decryptBlock code ind1 ind2 (offset-n) (Array.append found bs)
+                decryptBlock code ind1 (offset-n) (Array.append bs found)
         | _  -> let b = decryptByte code ind1 ind2 offset found
-                decryptBlock code ind1 ind2 (offset-1) (Array.append found b)
+                decryptBlock code ind1 (offset-1) (Array.append [|b|] found)
 
 let CBCPaddingDecrypt (code: byte []) =
     let numBlocks = Array.chunkBySize 16 code |> Array.length
     [| for i in [0..(numBlocks-1)] do yield
-           Array.append iv code |> decryptBlock (i*16) ((i+1)*16) 15 [] |]
+           Array.append iv code |> decryptBlock (i*16) 15 [] |]
     |> Array.concat
