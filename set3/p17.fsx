@@ -30,48 +30,63 @@ let testDecrypt = testEncrypt |> paddingOracle
 
 // padding oracle attack
 
-let genGuesses code ind1 offset: byte [] [] = 
-    let genGuess n =
+let genGuesses (code: byte []) ind1 offset (found: byte []): byte [] list =  
+    let genGuess n : byte [] =
         Utils.xor [|code.[ind1+offset]|] [|byte n|]
         |> Utils.xor [|byte (16-offset)|]
         |> Array.ofSeq
-    [| for i in [0..255] do yield
-           Array.concat [| code.[ind1..(ind1+offset-1)];
-                           [| genGuess n |];
-                           found;
-                           code.[(ind1+16)..(ind1+31) |] |]
+    [ for i in [0..255] do yield Array.concat [| code.[ind1..(ind1+offset-1)];
+                                                 genGuess i;
+                                                 found;
+                                                 code.[(ind1+16)..(ind1+31)] |] ]
      
-let rec evalGuesses ind guesses : byte =
+let rec evalGuesses ind (guesses: byte [] list) : (byte * byte []) =
     match guesses with
-        | x::[] -> x.[ind]
-        | x::xs -> if paddingOracle x is true then x.[ind]
-                   else evalGuesses offset xs 
+        | x::[] -> (x.[ind], x)
+        | x::xs -> if paddingOracle x = true then (x.[ind], x)
+                   else evalGuesses ind xs 
+        | _     -> (0uy, [||])
 
-let disambiguate code ind1 b : byte [] =
-    [||]
+let disambiguate (b: byte, bs: byte []) : byte [] =
+    let perturb b = Utils.xor [|b|] [|1uy|] |> Array.ofSeq
+    let genBlock n =
+        [| for _ in [0..n] do yield byte b |]
+        |> Utils.xor bs.[(16-n)..] 
+        |> Array.ofSeq
+    let rec checkOracle guesses =
+        match guesses with
+            | []        -> [|b|]
+            | (n,x)::xs -> if paddingOracle x = false then checkOracle xs
+                           else genBlock n
+    [ for i in [1..15] do
+          yield (i+1, Array.concat [| bs.[0..(15-i-1)];
+                                      perturb bs.[(15-i)];
+                                      bs.[(15-i+1)..15] |]) ]
+    |> checkOracle
 
-let decryptLastByte code ind1 =
+let decryptLastByte code ind1 : byte [] =
     genGuesses code ind1 15 [||]
     |> evalGuesses (ind1+31)
-    |> disambiguate code ind1 
-    
-let genPadding n = [| for n in [1..n] do yield byte n |]
+    |> disambiguate     
 
-let decryptByte code ind1 offset found =
+let decryptByte code ind1 offset found : (byte * byte []) =
     genGuesses code ind1 offset found
     |> evalGuesses (ind1+16+offset)
 
 let rec decryptBlock ind1 offset (found: byte []) (code: byte []): byte [] =
     match offset with
         | -1 -> found
-        | 15 -> let bs = decryptLastByte code ind1 ind2
-                let n = Array.length b
-                decryptBlock code ind1 (offset-n) (Array.append bs found)
-        | _  -> let b = decryptByte code ind1 ind2 offset found
-                decryptBlock code ind1 (offset-1) (Array.append [|b|] found)
+        | 15 -> let bs = decryptLastByte code ind1
+                let n = Array.length bs
+                decryptBlock ind1 (offset-n) (Array.append bs found) code
+        | _  -> let b, _ = decryptByte code ind1 offset found
+                decryptBlock ind1 (offset-1) (Array.append [|b|] found) code
 
 let CBCPaddingDecrypt (code: byte []) =
     let numBlocks = Array.chunkBySize 16 code |> Array.length
-    [| for i in [0..(numBlocks-1)] do yield
-           Array.append iv code |> decryptBlock (i*16) 15 [] |]
+    [| for i in [0..(numBlocks-1)] do
+           yield Array.append iv code |> decryptBlock (i*16) 15 [||] |]
     |> Array.concat
+
+CBCPaddingDecrypt testEncrypt
+
