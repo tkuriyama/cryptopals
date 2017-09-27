@@ -51,7 +51,6 @@ let genBlock (bs: byte []) n =
     |> Array.ofSeq
 
 let disambiguate (b: byte, bs: byte []) : byte [] =
-    let perturb b = Utils.xorArr [|b|] [|1uy|] 
     let rec checkOracle guesses =
         match guesses with
             | []        -> [|b|]
@@ -59,7 +58,7 @@ let disambiguate (b: byte, bs: byte []) : byte [] =
                            else genBlock x n
     [ for i in [1..15] do
           yield (i+1, Array.concat [| bs.[0..(15-i-1)];
-                                      perturb bs.[(15-i)];
+                                      Utils.xorArr [|bs.[(15-u)]|] [|1uy|] 
                                       bs.[(15-i+1)..15] |]) ]
     |> checkOracle
 
