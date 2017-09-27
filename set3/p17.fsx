@@ -28,12 +28,11 @@ let paddingOracle (code: byte []) : bool =
     
 let testDecrypt = testEncrypt |> paddingOracle
 
-// padding oracle attack
+(* padding oracle attack *)
 
 let genGuesses (code: byte []) ind1 offset (found: byte []): byte [] list =  
     let genGuess n : byte [] =
-        Utils.xor [|code.[ind1+offset]|] [|byte n|]
-        |> Utils.xor [|byte (16-offset)|]
+        Utils.xorArrs [ [|code.[ind1+offset]|]; [|byte n|]; [|byte (16-offset)|] ] 
         |> Array.ofSeq
     [ for i in [0..255] do yield Array.concat [| code.[ind1..(ind1+offset-1)];
                                                  genGuess i;
@@ -48,17 +47,16 @@ let rec evalGuesses ind (guesses: byte [] list) : (byte * byte []) =
         | _     -> (0uy, [||])
 
 let genBlock (bs: byte []) n =
-    [| for _ in [..n] do yield byte b |]
-    |> Utils.xor bs.[(16-n)..] 
+    Utils.xorArr [|for _ in [0..n] do yield byte n |] bs.[(16-n)..]
     |> Array.ofSeq
 
 let disambiguate (b: byte, bs: byte []) : byte [] =
-    let perturb b = Utils.xor [|b|] [|1uy|] |> Array.ofSeq
+    let perturb b = Utils.xorArr [|b|] [|1uy|] 
     let rec checkOracle guesses =
         match guesses with
             | []        -> [|b|]
             | (n,x)::xs -> if paddingOracle x = false then checkOracle xs
-                           else genBlock n
+                           else genBlock x n
     [ for i in [1..15] do
           yield (i+1, Array.concat [| bs.[0..(15-i-1)];
                                       perturb bs.[(15-i)];

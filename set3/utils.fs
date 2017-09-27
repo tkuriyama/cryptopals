@@ -16,6 +16,17 @@ let readLines (filePath: string) =
 let xor (b1: byte seq) (b2: byte seq) : byte seq =
     Seq.zip b1 b2
     |> Seq.map (fun (x, y) -> x ^^^ y)
+    
+let xorArr b1 b2 = xor b1 b2 |> Array.ofSeq
+
+let xorArrs (lst: byte [] list) : byte [] =
+    let rec f acc lst =
+        match acc, lst with
+            | [||], x::y::[] -> xorArr x y
+            | [||], x::y::xs -> f (xorArr x y) xs
+            | _,    x::[]    -> xorArr acc x
+            | _,    x::xs    -> f (xorArr acc x) xs
+    f [||] lst 
 
 let rec transpose xss =
    match xss with
