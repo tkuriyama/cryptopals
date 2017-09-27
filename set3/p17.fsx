@@ -51,16 +51,17 @@ let genBlock (bs: byte []) n =
     |> Array.ofSeq
 
 let disambiguate (b: byte, bs: byte []) : byte [] =
-    let rec checkOracle guesses =
-        match guesses with
+    let rec check pairs =
+        match pairs with
             | []        -> [|b|]
-            | (n,x)::xs -> if paddingOracle x = false then checkOracle xs
-                           else genBlock x n
+            | (n,x)::_ -> if paddingOracle x = false then check (List.tail pairs)
+                          else genBlock x n
+                           
     [ for i in [1..15] do
           yield (i+1, Array.concat [| bs.[0..(15-i-1)];
                                       Utils.xorArr [|bs.[(15-u)]|] [|1uy|] 
                                       bs.[(15-i+1)..15] |]) ]
-    |> checkOracle
+    |> check
 
 let decryptLastByte code ind1 : byte [] =
     genGuesses code ind1 15 [||]
