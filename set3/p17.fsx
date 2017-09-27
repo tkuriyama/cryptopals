@@ -47,12 +47,13 @@ let rec evalGuesses ind (guesses: byte [] list) : (byte * byte []) =
                    else evalGuesses ind xs 
         | _     -> (0uy, [||])
 
+let genBlock (bs: byte []) n =
+    [| for _ in [..n] do yield byte b |]
+    |> Utils.xor bs.[(16-n)..] 
+    |> Array.ofSeq
+
 let disambiguate (b: byte, bs: byte []) : byte [] =
     let perturb b = Utils.xor [|b|] [|1uy|] |> Array.ofSeq
-    let genBlock n =
-        [| for _ in [0..n] do yield byte b |]
-        |> Utils.xor bs.[(16-n)..] 
-        |> Array.ofSeq
     let rec checkOracle guesses =
         match guesses with
             | []        -> [|b|]
