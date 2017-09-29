@@ -35,9 +35,9 @@ let genGuesses (code: byte []) s offset (found: byte []): byte [] list =
     let guessByte n =
         Utils.xorArrs [ [|code.[s+offset]|]; [|byte n|]; [|byte (target)|] ]
     let foundBytes =
-        Utils.xorArrs [ found;
-                        Utils.repeatArr (byte target) (target-1)
-                        code.[s+offset+1..s+15] ]
+        Utils.xorArrs [ code.[s+offset+1..s+15];
+                        Utils.repeatArr (byte target) (target-1);
+                        found ]
     let genGuess n : byte [] =
         Array.append (guessByte n) foundBytes |> Array.ofSeq
     [ for i in [0..255] do yield Array.concat [| code.[s..(s+offset-1)];
@@ -87,8 +87,8 @@ let rec decryptBlock start offset (found: byte []) (code: byte []): byte [] =
                 decryptBlock start (offset-1) (Array.append b found) code
 
 let CBCPaddingDecrypt (code: byte []) =
-    let numBlocks = Array.chunkBySize 16 code |> Array.length
-    [| for i in [0..(numBlocks-1)] do
+    let numBlocks = Array.chunkBySize 16 code |> Array.length |> (+) -1
+    [| for i in [0..numBlocks] do
            yield Array.append iv code |> decryptBlock (i*16) 15 [||] |]
     |> Array.concat
 
