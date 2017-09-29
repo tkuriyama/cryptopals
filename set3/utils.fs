@@ -34,7 +34,6 @@ let rec transpose xss =
        | xss   -> List.map List.head xss :: transpose (List.map List.tail xss)
 
 let repeat x = seq { while true do yield x }
-let repeatArr x n = repeat x |> Seq.take n |> Seq.toArray
 let repeatSeq xs = seq { while true do yield! xs }
 
 (* Encodings *)

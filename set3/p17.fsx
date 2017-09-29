@@ -31,13 +31,11 @@ let testDecrypt = testEncrypt |> paddingOracle
 (* padding oracle attack *)
 
 let genGuesses (code: byte []) s offset (found: byte []): byte [] list =
-    let target = 16-offset
+    let padding n = Utils.repeat x |> Seq.take n |> Seq.toArray
     let guessByte n =
-        Utils.xorArrs [ [|code.[s+offset]|]; [|byte n|]; [|byte (target)|] ]
+        Utils.xorArrs [ [|code.[s+offset]|]; [|byte n|]; [|byte (16-offset)|] ]
     let foundBytes =
-        Utils.xorArrs [ code.[s+offset+1..s+15];
-                        Utils.repeatArr (byte target) (target-1);
-                        found ]
+        Utils.xorArrs [ code.[s+offset+1..s+15]; padding (16-offset); found ]
     let genGuess n : byte [] =
         Array.append (guessByte n) foundBytes |> Array.ofSeq
     [ for i in [0..255] do yield Array.concat [| code.[s..(s+offset-1)];
