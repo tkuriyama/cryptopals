@@ -32,11 +32,11 @@ let testDecrypt = testEncrypt |> paddingOracle
 
 let genGuesses (code: byte []) s offset (found: byte []): (byte * byte []) list =
     let guessByte n =
-        Utils.xorArrs [ [|code.[s+offset]|]; [|byte n|]; [|byte (16-offset)|] ]
+        Utils.xorArr [|code.[s+offset]|] [|byte n|] 
     let padding n = Utils.repeat (byte n) |> Seq.take (n-1) |> Seq.toArray
     let foundBytes =
         let f = Utils.xorArrs [ code.[s+offset+1..s+15]; padding (16-offset); found ]
-        printfn "%A" f
+        printfn "%s" (found |> Utils.bytesToStr)
         f
     let genGuess i: byte [] =
         Array.concat [| code.[s..(s+offset-1)];
@@ -58,9 +58,9 @@ let genBlock (bs: byte []) n =
 let disambiguate (b: byte, bs: byte []) : byte [] =
     let rec check pairs =
         match pairs with
-            | []        -> [|b|]
+            | []       -> Utils.xorArr [|b|] [|1uy|]
             | (n,x)::_ -> if paddingOracle x = false then check (List.tail pairs)
-                          else genBlock x n        
+                          else genBlock x n
     [ for i in [1..15] do
           yield (i+1, Array.concat [| bs.[0..(15-i-1)];
                                       Utils.xorArr [|bs.[(15-i)]|] [|1uy|] 
@@ -77,6 +77,7 @@ let decryptByte code start offset found : byte [] =
     |> evalGuesses offset
     |> fst
     |> Array.create 1
+    |> Utils.xorArr [|byte (16 - offset)|]
 
 let rec decryptBlock start offset (found: byte []) (code: byte []): byte [] =
     match offset with
