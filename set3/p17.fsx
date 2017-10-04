@@ -50,9 +50,7 @@ let rec evalGuesses ind (guesses: (byte * byte []) list) : (byte * byte []) =
         | _         -> (0uy, [||])
 
 let genBlock (bs: byte []) n : byte [] =
-    // Utils.xorArr [|for _ in [0..(n-1)] do yield byte n |] bs.[(16-n)..15]
-    [|for _ in [0..(n-1)] do yield byte n |] 
-    |> Array.ofSeq
+    [|for _ in [0..(n-1)] do yield byte n |] |> Array.ofSeq
 
 let disambiguate (b: byte, bs: byte []) : byte [] =
     let rec check pairs =
