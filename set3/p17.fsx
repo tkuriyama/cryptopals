@@ -35,9 +35,7 @@ let genGuesses (code: byte []) s offset (found: byte []): (byte * byte []) list 
         Utils.xorArr [|code.[s+offset]|] [|byte n|] 
     let padding n = Utils.repeat (byte n) |> Seq.take (n-1) |> Seq.toArray
     let foundBytes =
-        let f = Utils.xorArrs [ code.[s+offset+1..s+15]; padding (16-offset); found ]
-        printfn "%A %s" found (found |> Utils.bytesToStr)
-        f
+        Utils.xorArrs [ code.[s+offset+1..s+15]; padding (16-offset); found ] 
     let genGuess i: byte [] =
         Array.concat [| code.[s..(s+offset-1)];
                         guessByte i; foundBytes;
@@ -52,22 +50,20 @@ let rec evalGuesses ind (guesses: (byte * byte []) list) : (byte * byte []) =
         | _         -> (0uy, [||])
 
 let genBlock (bs: byte []) n : byte [] =
-    printfn "longer than one byte padding identified"
-    Utils.xorArr [|for _ in [0..(n-1)] do yield byte n |] bs.[(16-n)..]
+    // Utils.xorArr [|for _ in [0..(n-1)] do yield byte n |] bs.[(16-n)..15]
+    [|for _ in [0..(n-1)] do yield byte n |] 
     |> Array.ofSeq
 
 let disambiguate (b: byte, bs: byte []) : byte [] =
-    printfn "%A; %s" b ([|b|] |> bytesToStr)
-    printfn "%A" (Utils.CBCDecryptKeepPad key iv bs)
     let rec check pairs =
         match pairs with
             | []       -> Utils.xorArr [|b|] [|1uy|]
             | (n,x)::_ -> if paddingOracle x = false then genBlock x n
                           else check (List.tail pairs)
     [ for i in [1..15] do
-          yield (i+1, Array.concat [| bs.[0..(15-i-1)];
-                                      Utils.xorArr [|bs.[(15-i)]|] [|1uy|] 
-                                      bs.[(15-i+1)..] |]) ]
+          yield (17-i, Array.concat [| bs.[0..(i-2)];
+                                       Utils.xorArr [|bs.[i-1]|] [|1uy|] 
+                                       bs.[i..] |]) ]
     |> check
 
 let decryptLastByte code start : byte [] =
@@ -96,4 +92,4 @@ let CBCPaddingDecrypt (code: byte []) =
            yield Array.append iv code |> decryptBlock (i*16) 15 [||] |]
     |> Array.concat
 
-let text = CBCPaddingDecrypt testEncrypt |> Utils.bytesToStr
+let text = CBCPaddingDecrypt testEncrypt |> Utils.stripPKCS7 |> Utils.bytesToStr
