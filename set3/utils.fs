@@ -85,16 +85,18 @@ let validPKCS7 (code: byte []) : bool =
     let rec strip (arr: byte []) padding ctr : bool =
         let c = int arr.[0]
         if c <> padding then false
-        elif ctr < c then strip arr.[1..] padding (ctr + 1)
+        elif ctr < padding then strip arr.[1..] padding (ctr + 1)
         else true
-    strip arr (int arr.[0]) 1
+    match arr.[0] with
+        | 0uy -> false
+        | _   -> strip arr (int arr.[0]) 1
 
 let stripPKCS7 (code: byte []) : byte [] =
     let arr = Array.rev code
     let rec strip (arr: byte []) padding ctr : byte [] =
         let c = int arr.[0]
         if c <> padding then failwith "bad padding"
-        elif ctr < c then strip arr.[1..] padding (ctr + 1)
+        elif ctr < padding then strip arr.[1..] padding (ctr + 1)
         else arr.[1..] |> Array.rev
     strip arr (int arr.[0]) 1
         
