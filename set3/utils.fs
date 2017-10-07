@@ -183,3 +183,21 @@ let CBCDecrypt (key: string) (iv: byte []) (code: byte []) : byte [] =
 let CBCDecryptKeepPad (key: string) (iv: byte []) (code: byte []) : byte [] =
     let blocks = iv :: (prepareCodeCBC code)
     applyCBCDecrypt blocks key [] |> Array.concat
+
+(* CTR Mode *)
+
+let genCtr ind : byte [] =
+    Array.init 8 (fun i -> let n = (i+1) * 256 - 1
+                           if n - ind > 255 then byte 0
+                           elif ind / n >= 1 then byte 255
+                           else byte (ind % 256))
+
+let rec genStream (key: string) (nonce: byte []) numBlocks ind acc : byte [] =
+    if ind = numBlocks then acc
+    else let enc = genCtr ind |> Array.append nonce |> AESEncryptECB key [||]
+         genStream key nonce numBlocks (ind+1) (Array.append acc enc)
+
+let applyCTR (key: string) (nonce: byte []) (code: byte []) : byte [] =
+    let numBlocks = Array.chunkBySize 16 code |> Array.length
+    genStream key nonce numBlocks 0 [||]
+    |> xorArr code
