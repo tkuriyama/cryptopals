@@ -186,12 +186,8 @@ let CBCDecryptKeepPad (key: string) (iv: byte []) (code: byte []) : byte [] =
 
 (* CTR Mode *)
 
-let genCtr ind : byte [] =
-    Array.init 8 (fun i -> let n = (i+1) * 256 - 1
-                           if n - ind > 255 then byte 0
-                           elif ind / n >= 1 then byte 255
-                           else byte (ind % 256))
-
+let genCtr ind : byte [] = BitConverter.GetBytes (int64 ind)
+   
 let rec genStream (key: string) (nonce: byte []) numBlocks ind acc : byte [] =
     if ind = numBlocks then acc
     else let enc = genCtr ind |> Array.append nonce |> AESEncryptECB key [||]
