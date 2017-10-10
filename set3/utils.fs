@@ -201,7 +201,7 @@ let applyCTR (key: string) (nonce: byte []) (code: byte []) : byte [] =
     genStream key nonce numBlocks 0 [||]
     |> xorArr code
 
-(* Decrypt single-char XOR *)
+(* Decrypt repeated-key XOR *)
 
 let freqMap =
     Map.ofList [('a', 0.0651738); ('b', 0.0124248); ('c', 0.0217339);
