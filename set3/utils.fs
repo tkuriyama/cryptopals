@@ -219,17 +219,16 @@ let singleXorGuesses (code: byte seq) : (string * string) seq  =
          let guess = xor code (repeat b) 
          yield ([|b|] |> bytesToStr, guess |> bytesToStr) }
 
-let chiSquared (observation: float) (expected: float) =
+let chiSquared (observation: float) (expected: float) : float =
     (pown (observation - expected) 2) / expected
 
 let scoreGuesses (guesses: (string * string) seq) : ((string * string) * float) seq =
     let lookupKey k v n =
         match (Map.tryFind (Char.ToLower k) freqMap) with
-        | Some x -> chiSquared (float v) (n * x)
-        | None   -> 99.99
+        | Some x -> float v
+        | None -> 0.0
     let score n hist =
         Map.fold (fun s k v -> s + lookupKey k v n) 0.0 hist
-        // Map.fold (fun s k v -> s + (lookupKey k v)) 0.0 hist
     guesses
     |> Seq.map (fun (key, guess) ->
                     ((key, guess),
@@ -239,4 +238,4 @@ let decryptSingleXor (code: byte seq) =
     code
     |> singleXorGuesses
     |> scoreGuesses
-    |> Seq.minBy snd
+    |> Seq.maxBy snd
