@@ -2,4 +2,4 @@
 
 open Utils
 
-let MT = MTInit 1;;
+let MT = MTInit 1u;;
