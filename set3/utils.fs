@@ -249,15 +249,6 @@ let s, b       = (7, 0x9D2C5680)
 let t, c       = (15, 0xEFC60000)
 let l          = 18
 
-let MTInit (seed: int) : (int []) =
-    let f = 1812433253
-    let rec init i prev state =
-        match i with
-        | 624 -> state
-        | _   -> let n = f * (prev ^^^ (prev >>> (w-2))) + i
-                 init (i+1) n (Array.append state [|n|])
-    init 1 seed [|seed|] |> MTNextState
-
 let MTNextState (state: int []) : int [] =
     let upper x = (x >>> r) <<< r
     let lower x = (x <<< (w-r)) >>> (w-r)
@@ -265,7 +256,7 @@ let MTNextState (state: int []) : int [] =
         (upper state.[0] ||| lower state.[1])
     let multA x =
         let x1 = x >>> 1
-        if x &&& 1 = 0 then x else x ^^^ a  
+        if x &&& 1 = 0 then x1 else x1 ^^^ a
     Array.append (Array.tail state) [|state.[m] ^^^ (multA y)|]
 
 let MTNextValue (state: int []) : int =
@@ -275,3 +266,12 @@ let MTNextValue (state: int []) : int =
     let y2 = y1 ^^^ ((y1 <<< t) &&& c)
     let z = y2 ^^^ (y2 >>> l)
     z
+
+let MTInit (seed: int) : (int []) =
+    let f = 1812433253
+    let rec init i prev state =
+        match i with
+        | 624 -> state
+        | _   -> let n = f * (prev ^^^ (prev >>> (w-2))) + i
+                 init (i+1) n (Array.append state [|n|])
+    init 1 seed [|seed|] |> MTNextState
