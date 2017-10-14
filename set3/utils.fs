@@ -244,7 +244,7 @@ let decryptSingleXor (code: byte seq) =
 
 let w, n, m, r = (32, 624, 397, 31)
 let a          = 0x9908B0DF
-let u, d       = (11u, 0xFFFFFFFF)
+let u, d       = (11, 0xFFFFFFFF)
 let s, b       = (7, 0x9D2C5680)
 let t, c       = (15, 0xEFC60000)
 let l          = 18
@@ -261,7 +261,7 @@ let MTNextState (state: uint32 []) : uint32 [] =
 
 let MTNextValue (state: uint32 []) : uint32 =
     let x = Array.last state
-    let y0 = x ^^^ ((x >>> (int u)) &&& (uint32 d))
+    let y0 = x ^^^ ((x >>> u) &&& (uint32 d))
     let y1 = y0 ^^^ ((y0 <<< s) &&& (uint32 b))
     let y2 = y1 ^^^ ((y1 <<< t) &&& (uint32 c))
     let z = y2 ^^^ (y2 >>> l)
