@@ -2,4 +2,5 @@
 
 open Utils
 
-let MT = MTInit 1u;;
+let MT = Utils.MTInit 1u;;
+let MTSeq = Utils.MTSequence 1u;;
