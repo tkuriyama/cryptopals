@@ -244,34 +244,34 @@ let decryptSingleXor (code: byte seq) =
 
 let w, n, m, r = (32, 624, 397, 31)
 let a          = 0x9908B0DF
-let u, d       = (11, 0xFFFFFFFF)
+let u, d       = (11u, 0xFFFFFFFF)
 let s, b       = (7, 0x9D2C5680)
 let t, c       = (15, 0xEFC60000)
 let l          = 18
 
-let MTNextState (state: int []) : int [] =
+let MTNextState (state: uint32 []) : uint32 [] =
     let upper x = (x >>> r) <<< r
     let lower x = (x <<< (w-r)) >>> (w-r)
     let y =
         (upper state.[0] ||| lower state.[1])
-    let multA x =
+    let multA (x: uint32) = 
         let x1 = x >>> 1
-        if x &&& 1 = 0 then x1 else x1 ^^^ a
+        if x &&& 1u = 0u then x1 else x1 ^^^ (uint32 a)
     Array.append (Array.tail state) [|state.[m] ^^^ (multA y)|]
 
-let MTNextValue (state: int []) : int =
+let MTNextValue (state: uint32 []) : uint32 =
     let x = Array.last state
-    let y0 = x ^^^ ((x >>> u) &&& d)
-    let y1 = y0 ^^^ ((y0 <<< s) &&& b)
-    let y2 = y1 ^^^ ((y1 <<< t) &&& c)
+    let y0 = x ^^^ ((x >>> (int u)) &&& (uint32 d))
+    let y1 = y0 ^^^ ((y0 <<< s) &&& (uint32 b))
+    let y2 = y1 ^^^ ((y1 <<< t) &&& (uint32 c))
     let z = y2 ^^^ (y2 >>> l)
     z
 
-let MTInit (seed: int) : (int []) =
-    let f = 1812433253
-    let rec init i prev state =
+let MTInit (seed: uint32) : (uint32 []) =
+    let f = 1812433253u
+    let rec init i (prev: uint32) state =
         match i with
         | 624 -> state
-        | _   -> let n = f * (prev ^^^ (prev >>> (w-2))) + i
+        | _   -> let n = f * (prev ^^^ (prev >>> (w-2))) + (uint32 i)
                  init (i+1) n (Array.append state [|n|])
     init 1 seed [|seed|] |> MTNextState
