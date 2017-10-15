@@ -276,8 +276,9 @@ let MTInit (seed: uint32) : (uint32 []) =
                  init (i+1) n (Array.append state [|n|])
     init 1 seed [|seed|] |> MTNextState
 
+let rec infSeq (state: uint32 []) =
+    seq { yield MTNextValue state
+          yield! infSeq (MTNextState state) }
+
 let MTSequence (seed: uint32) =
-    let rec infSeq (state: uint32 []) =
-        seq { yield MTNextValue state
-              yield! infSeq (MTNextState state) }
     MTInit seed |> infSeq
