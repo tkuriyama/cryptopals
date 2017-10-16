@@ -13,18 +13,21 @@ let decryptTest = applyCTR 0u encryptTest |> Utils.bytesToStr
 
 let rnd = Random()
 let seed = let max = pown 2 16 in rnd.Next(max) |> uint32
-let input = 
-    "AAAAAAAAAAAAAA"
-    |> Utils.strToBytes
+let target = "AAAAAAAAAAAAAA" |> Utils.strToBytes
+let code =
+    target
     |> Array.append (Utils.randKey (5 + rnd.Next(5)))
-let code = applyCTR seed input
+    |> applyCTR seed
 
-let tryFind 
+let tryFind code i target : bool =
+    let guess = applyCTR (uint32 i) code
+    let s = (Array.length guess) - (Array.length target)
+    if guess.[s..] = target then true else false
 
-let findSeed code input : int =
+let findSeed code target : int =
     let rec f code i =
         match i with
         | 65536 -> 65536
-        | _     -> let found = tryFind code i
+        | _     -> let found = tryFind code i target
                    if found = true then i else f code (i+1)
     f code 1
