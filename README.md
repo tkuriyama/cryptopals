@@ -37,3 +37,17 @@ Python 2.7 and F# 4.1
      250    1319 utils.fs     326    1341 utils.py
      447    2130 total        625    2284 total
 
+#### Set 3
+
+F# 4.1
+
+    Lines   Words 
+      93     415 p17.fsx
+      11      33 p18.fsx
+      33     118 p19_p20.fsx
+       6      14 p21.fsx
+      27      97 p22.fsx
+      42     227 p23.fsx
+      52     230 p24.fsx
+     284    1459 utils.fs
+     623    2740 total
