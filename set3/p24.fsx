@@ -31,3 +31,22 @@ let findSeed code target : int =
         | _     -> let found = tryFind code i target
                    if found = true then i else f code (i+1)
     f code 1
+
+(* Password Token *)
+
+let findUnixTime = 
+    let dateTime = DateTime.Now
+    let epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+    (dateTime.ToUniversalTime() - epoch).TotalSeconds
+
+let token =
+    let seed = uint32 findUnixTime
+    let randBytes =
+        Utils.repeat 1uy |> Seq.take (5 + rnd.Next(10)) |> Seq.toArray
+    applyCTR seed randBytes
+
+let verifyToken =
+    let seed = uint32 findUnixTime
+    let target = Utils.repeat 1uy |> Seq.take (Array.length token) |> Seq.toArray
+    applyCTR seed target
+    |> (=) token
