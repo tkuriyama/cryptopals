@@ -15,14 +15,23 @@ let key = Utils.randKey 16 |> Utils.bytesToStr
 let nonce = Utils.repeat (byte 0) |> Seq.take 8 |> Seq.toArray
 let codeCTR = applyCTR key nonce text
 
-let edit (code: byte []) (key: string) (offset: int) (newText: byte []) =
+let edit (code: byte []) (key: string) (offset: int) (newText: byte []) : byte [] =
     let l = Array.length newText
-    let plain = applyCTR key nonce code
-    Array.concat [| plain.[0..(offset-1)];
-                    newText;
-                    plain.[(offset+l)..] |]
+    let p = applyCTR key nonce code
+    Array.concat [| p.[0..(offset-1)]; newText; p.[(offset+l)..] |]
     |> applyCTR key nonce
     
-let editAPI (code: byte []) (offset: int) (newText: string) =
+let editAPI (code: byte []) (offset: int) (newText: string) : byte [] =
     edit code key offset (newText |> Utils.strToBytes)
 
+let decrypt =
+    let sub =
+        Utils.repeat "A"
+        |> Seq.take (Array.length codeCTR)
+        |> String.concat ""
+    editAPI codeCTR 0 sub
+    |> Utils.xor (sub |> strToBytes)
+    |> Utils.xor codeCTR
+    |> Seq.toArray
+
+let testDecrypted = decrypt = text
