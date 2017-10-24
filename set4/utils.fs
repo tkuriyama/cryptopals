@@ -34,6 +34,7 @@ let rec transpose xss =
        | xss   -> List.map List.head xss :: transpose (List.map List.tail xss)
 
 let repeat x = seq { while true do yield x }
+let repeatArr x n = repeat x |> Seq.take n |> Seq.toArray
 let repeatSeq xs = seq { while true do yield! xs }
 
 (* Encodings *)
@@ -200,5 +201,4 @@ let applyCTR (key: string) (nonce: byte []) (code: byte []) : byte [] =
     let numBlocks = Array.chunkBySize 16 code |> Array.length
     genStream key nonce numBlocks 0 [||]
     |> xorArr code
-
 
