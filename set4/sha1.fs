@@ -41,8 +41,17 @@ let sha1Iter (state: uint32*uint32*uint32*uint32*uint32) (chunk: uint32 []) =
     let a, b, c, d, e = applyIter words state 0
     (h0+a, h1+b, h2+c, h3+d, h4+e)
 
+let int32ToHex (n: uint32) =
+    let h1 = n >>> 24
+    let h2 = (n <<< 8) >>> 24
+    let h3 = (n <<< 16) >>> 24
+    let h4 = (n <<< 24) >>> 24
+    List.map (sprintf "%02x") [h1; h2; h3; h4]
+    |> String.concat ""
+
 let finalize state =
-    0
+    Array.map int32ToHex state
+    |> String.concat ""
 
 let sha1 (data: byte []) =
     preprocess data
