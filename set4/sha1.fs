@@ -2,8 +2,6 @@
 
 open Utils
 
-(* SHA-1 *)
-
 let h0 = 0x67452301u
 let h1 = 0xEFCDAB89u
 let h2 = 0x98BADCFEu
@@ -78,3 +76,8 @@ let sha1 (data: byte []) =
     |> Array.chunkBySize 16
     |> Array.fold (fun state c -> sha1Iter state c) initState
     |> finalize
+
+let test =
+    "The quick brown fox jumps over the lazy cog"
+    |> Utils.strToBytes
+    |> sha1
