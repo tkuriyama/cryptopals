@@ -9,8 +9,8 @@ let h3 = 0x10325476u
 let h4 = 0xC3D2E1F0u
 let initState = (h0, h1, h2, h3, h4)
 
-let leftRotate x (n: uint32) : uint32 =
-    (n <<< x) ||| (n >>> (32 - x))
+let leftRotate s (n: uint32) : uint32 =
+    (n <<< s) ||| (n >>> (32 - s))
 
 let padLen (data: byte []) : int =
     (64 - ((Array.length data) % 64)) % 64
@@ -22,7 +22,7 @@ let msgLen (data: byte []) : byte [] =
 
 let bytesToInts (data: byte []): uint32 [] =
     let rec convert (bytes: byte []) n s : uint32 =
-        if s = 0 then n
+        if s = 0 then (n + uint32 bytes.[0])
         else convert bytes.[1..] ((n + (uint32 bytes.[0])) <<< 8) (s-8)
     [| for i in [0..4..((Array.length data) - 1)] do
        yield convert data.[i..i+3] (uint32 0) 24 |]
@@ -81,3 +81,4 @@ let test =
     "The quick brown fox jumps over the lazy cog"
     |> Utils.strToBytes
     |> sha1
+    |> (=) "de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3"
