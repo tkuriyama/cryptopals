@@ -14,13 +14,12 @@ let initState = (h0, h1, h2, h3, h4)
 let leftRotate x (n: uint32) : uint32 =
     (n <<< x) ||| (n >>> (32 - x))
 
-let padLen (data: byte []) : uint32 =
+let padLen (data: byte []) : int =
     (64 - ((Array.length data) % 64)) % 64
-    |> uint32
 
 let msgLen (data: byte []) : byte [] =
     let getByte n s = n >>> (8 * s) |> byte
-    let l = Array.length data
+    let l = Array.length data |> (*) 8
     [| getByte l 1; getByte l 0 |]
 
 let bytesToInts (data: byte []): uint32 [] =
@@ -32,8 +31,8 @@ let bytesToInts (data: byte []): uint32 [] =
 
 let preprocess (data: byte []) : byte [] =
     let pl = padLen data
-    if pl = (uint32 0) then data
-    else let zeros = pl - (uint32 3) |> int |> Utils.repeatArr 0uy
+    if pl = 0 then data
+    else let zeros = Utils.repeatArr 0uy (pl - 3)
          Array.concat [| data; [|128uy|]; zeros; (msgLen data) |]
 
 let rec extend (ws: uint32 []) i : uint32 [] =
