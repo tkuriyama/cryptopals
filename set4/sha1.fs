@@ -14,8 +14,27 @@ let initState = (h0, h1, h2, h3, h4)
 let leftRotate x (n: uint32) : uint32 =
     (n <<< x) ||| (n >>> (32 - x))
 
-let preprocess (data: byte []) : uint32 [] =
-    [||]
+let padLen (data: byte []) : uint32 =
+    (64 - ((Array.length data) % 64)) % 64
+    |> uint32
+
+let msgLen (data: byte []) : byte [] =
+    let getByte n s = n >>> (8 * s) |> byte
+    let l = Array.length data
+    [| getByte l 1; getByte l 0 |]
+
+let bytesToInts (data: byte []): uint32 [] =
+    let rec convert (bytes: byte []) n s : uint32 =
+        if s = 0 then n
+        else convert bytes.[1..] ((n + (uint32 bytes.[0])) <<< 8) (s-8)
+    [| for i in [0..4..((Array.length data) - 1)] do
+       yield convert data.[i..i+3] (uint32 0) 24 |]
+
+let preprocess (data: byte []) : byte [] =
+    let pl = padLen data
+    if pl = (uint32 0) then data
+    else let zeros = pl - (uint32 3) |> int |> Utils.repeatArr 0uy
+         Array.concat [| data; [|128uy|]; zeros; (msgLen data) |]
 
 let rec extend (ws: uint32 []) i : uint32 [] =
     match i with
@@ -49,12 +68,14 @@ let int32ToHex (n: uint32) =
     List.map (sprintf "%02x") [h1; h2; h3; h4]
     |> String.concat ""
 
-let finalize state =
-    Array.map int32ToHex state
+let finalize state : string =
+    let h0, h1, h2, h3, h4 = state
+    Array.map int32ToHex [| h0; h1; h2; h3; h4 |]
     |> String.concat ""
 
 let sha1 (data: byte []) =
     preprocess data
+    |> bytesToInts
     |> Array.chunkBySize 16
     |> Array.fold (fun state c -> sha1Iter state c) initState
     |> finalize
