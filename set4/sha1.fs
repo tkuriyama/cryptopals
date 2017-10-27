@@ -1,6 +1,12 @@
-#load "utils.fs"
+module Sha1
 
-open Utils
+open System
+
+let strToBytes (s: string) : byte [] =
+    Text.Encoding.ASCII.GetBytes s
+
+let repeat x = seq { while true do yield x }
+let repeatArr x n = repeat x |> Seq.take n |> Seq.toArray
 
 let h0 = 0x67452301u
 let h1 = 0xEFCDAB89u
