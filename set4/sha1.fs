@@ -36,7 +36,7 @@ let bytesToInts (data: byte []): uint32 [] =
 let preprocess (data: byte []) : byte [] =
     let pl = padLen data
     if pl = 0 then data
-    else let zeros = Utils.repeatArr 0uy (pl - 3)
+    else let zeros = repeatArr 0uy (pl - 3)
          Array.concat [| data; [|128uy|]; zeros; (msgLen data) |]
 
 let rec extend (ws: uint32 []) i : uint32 [] =
@@ -80,11 +80,11 @@ let sha1 (data: byte []) =
     preprocess data
     |> bytesToInts
     |> Array.chunkBySize 16
-    |> Array.fold (fun state c -> sha1Iter state c) initState
+    |> Array.fold sha1Iter initState
     |> finalize
 
 let test =
     "The quick brown fox jumps over the lazy cog"
-    |> Utils.strToBytes
+    |> strToBytes
     |> sha1
     |> (=) "de9f2c7fd25e1b3afad3e85a0bd17d9b100db4b3"
