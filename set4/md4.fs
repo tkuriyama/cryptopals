@@ -1,3 +1,5 @@
+(* MD4 yielding incorrect hash; obsolete algorithm so leaving for now *)
+
 module MD4
 
 open System
