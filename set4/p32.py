@@ -55,23 +55,6 @@ def attack(url, n=10):
     valid = check_valid(url, gen_params(guess))
     return valid, guess
     
-# Baseline
-
-def print_perf(start, end):
-    """Print diff as ms between start and end times (floats in secs)."""
-    diff = (end - start) * 1000
-    print('{:.2f} milliseconds elapsed'.format(diff))
-    return diff
-
-def test_baseline(url, msg):
-    """Test secure entrypoint."""
-    start = time.time()
-    r = requests.get(url, params=PAYLOAD)
-    end = time.time()
-    print(msg)
-    print_perf(start, end)
-    assert r.status_code == 200
-
 # Main
     
 def main():
