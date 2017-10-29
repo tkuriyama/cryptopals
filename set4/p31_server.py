@@ -28,7 +28,7 @@ def insecure_compare(input, guess):
             valid = False
             break
         time.sleep(1 / 1000 * 50)
-    return valid
+    return valid if len(hm) == len(guess) else False
 
 
 @app.route("/test", methods=['GET'])
