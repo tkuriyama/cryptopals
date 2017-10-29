@@ -27,7 +27,7 @@ def insecure_compare(input, guess):
         if fst != snd:
             valid = False
             break
-        time.sleep(1/1000 * 50)
+        time.sleep(1 / 1000 * 50)
     return valid
 
 
