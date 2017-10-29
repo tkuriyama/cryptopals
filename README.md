@@ -7,7 +7,7 @@ Link to problems [here](https://cryptopals.com/). Notes [in this blog](http://le
 
 #### Set 1
 
-Python 2.7 and F# 4.1
+F# 4.1 and Python 2.7
 
      Lines   Words            Lines   Words
       11      29 ./p1.fsx      20      49 ./p1.py
@@ -23,7 +23,7 @@ Python 2.7 and F# 4.1
 
 #### Set 2
 
-Python 2.7 and F# 4.1
+F# 4.1 and Python 2.7
      
     Lines   Words             Lines  Words
        8      23 p9.fsx        11      26 p9.py
@@ -51,3 +51,23 @@ F# 4.1
       52     230 p24.fsx
      284    1459 utils.fs
      623    2740 total
+
+#### Set 4
+
+F# 4.1 and Python 3.6
+
+    Lines   Words             Lines  Words
+      94     615 md4.fs
+      37     145 p25.fsx
+      44     225 p26.fsx
+      32     148 p27.fsx
+      11      45 p28.fsx
+      43     173 p29.fsx
+      43     172 p30.fsx
+      90     517 sha1.fs
+     204    1028 utils.fs
+                               80     237 p31.py
+                               45     135 p31_server.py
+                               67     215 p32.py
+                               45     135 p32_server.py
+     598    3068 total        237     722 total
