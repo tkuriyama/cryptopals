@@ -28,31 +28,29 @@ def gen_params(guess):
     """Return dict of parameters with guess string."""
     return {'file': 'foo', 'signature': guess}
 
-def significant_diff(mu1, sigma1, mu2, sigma2, n):
+def t_stat(mu1, sigma1, mu2, sigma2, n=10):
     """T-test for significant difference."""
     pooled_sigma = np.sqrt((sigma1**2 + sigma2**2) / 2)
-    t = (mu2 - mu1) / (pooled_sigma * np.sqrt(2 / n))
-    return t > 1.684
+    return (mu2 - mu1) / (pooled_sigma * np.sqrt(2 / n))
 
-def next_guess(url, guess):
+def next_guess(url, guess, n=10):
     """Guess next char."""
     base_mu, base_sigma = time_guess(url, gen_params(guess))
-    found = False
+    found = []
     for i in range(256):
         c = format(i, 'x')
-        test_mu, test_sigma = time_guess(url, gen_params(guess + c))
-        if significant_diff(base_mu, base_sigma, test_mu, test_sigma, 10):
-            found = True
-            break
-    return c, found
+        test_mu, test_sigma = time_guess(url, gen_params(guess + c), n)
+        t = t_stat(base_mu, base_sigma, test_mu, test_sigma, n)
+        found.append((c, t))
         
-def attack(url):
+    return max(found, key=lambda x: x[1])
+        
+def attack(url, n=10):
     """Implement timing attack on given url."""
     guess = ''
-    found = True
-    while found:
-        c, found = next_guess(url, guess)
-        guess += c if found else ''
+    for i in range(20):
+        c = next_guess(url, guess, n)
+        guess += c[0]
         
     valid = check_valid(url, gen_params(guess))
     return valid, guess
