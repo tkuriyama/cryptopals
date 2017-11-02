@@ -3,7 +3,6 @@
 open Utils
 open System
 open System.Numerics
-open System.Globalization
 
 let r = new Random()
 
@@ -27,3 +26,4 @@ let A_big = BigInteger.ModPow (g, (BigInteger a), p_big)
 let B_big = BigInteger.ModPow (g, (BigInteger b), p_big)
 let s_a_big = BigInteger.ModPow (B_big, BigInteger a, p_big)
 let s_b_big = BigInteger.ModPow (A_big, BigInteger b, p_big)
+
