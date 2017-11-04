@@ -2,6 +2,7 @@ module Utils
 
 open System
 open System.IO
+open System.Numerics
 open System.Security.Cryptography
 
 (* IO *)
@@ -61,7 +62,7 @@ let update i n b =
     ((b |> int |> BigInteger) <<< (i * 8)) ||| n
 
 let hexToBigInt s =
-    decodeHex s
+    hexToBytes s
     |> List.rev
     |> List.fold (fun (i, n) b -> (i + 1, update i n b)) (0, BigInteger 0)
     |> snd
