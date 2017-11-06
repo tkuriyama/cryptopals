@@ -22,7 +22,8 @@ let keyAToB (p, g) = (p, g, BigInteger.ModPow (g, a, p))
 let keyBToA (p, g, A) = (p, g, A, BigInteger.ModPow (g, b, p))
 
 let msgAToB (p, g, A, B) =
-    let key = BigInteger.ModPow (B, a, p) |> Utils.bigIntToBytes |> Sha1.sha1
+    let s_a = BigInteger.ModPow (B, a, p)
+    let key = s_a.ToByteArray() |> Sha1.sha1
     let iv = Utils.randKey 16
     let code =
         "YELLOW SUBMARINE RED SUBMARINE BLUE SUBMARINE"
@@ -31,7 +32,8 @@ let msgAToB (p, g, A, B) =
     (p, g, A, B, code, iv)
 
 let msgBToA (p, g, A, B, codeA, ivA) = 
-    let key = BigInteger.ModPow (A, b, p) |> Utils.bigIntToBytes |> Sha1.sha1
+    let s_b = BigInteger.ModPow (A, b, p)
+    let key = s_b.ToByteArray() |> Sha1.sha1
     let msgA = Utils.CBCDecrypt key.[..15] ivA codeA
     let iv = Utils.randKey 16
     let code =
@@ -41,7 +43,8 @@ let msgBToA (p, g, A, B, codeA, ivA) =
     (p, g, A, B, code, iv)
 
 let endA (p, g, A, B, codeB, ivB) =
-    let key = BigInteger.ModPow (A, b, p) |> Utils.bigIntToBytes |> Sha1.sha1
+    let s_a = BigInteger.ModPow (B, a, p)
+    let key = s_a.ToByteArray() |> Sha1.sha1
     let msgB = Utils.CBCDecrypt key.[..15] ivB codeB
     msgB |> Utils.bytesToStr
 
