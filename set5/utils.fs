@@ -67,9 +67,6 @@ let hexToBigInt s =
     |> List.fold (fun (i, n) b -> (i + 1, update i n b)) (0, BigInteger 0)
     |> snd
 
-let bigIntToBytes n =
-    repeatArr 62uy 16
-
 let bytesToStr (b: byte seq) : string =
     Seq.toArray b
     |> Text.Encoding.ASCII.GetString

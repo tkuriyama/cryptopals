@@ -49,3 +49,22 @@ let endA (p, g, A, B, codeB, ivB) =
     msgB |> Utils.bytesToStr
 
 let normalExchange = keyAToB (p_big, g_big) |> keyBToA |> msgAToB |> msgBToA |> endA
+
+(* Man-in-the-Middle Exchange *)
+
+let keyMToB (p, g, A) = (p, g, p)
+let keyMToA (p, g, A, B) = (p, g, p, p)
+
+let msgMToB (p, g, A, B, code, iv) =
+    let s = BigInteger 0
+    let key = s.ToByteArray() |> Sha1.sha1
+    let msg = Utils.CBCDecrypt key.[..15] iv code |> Utils.bytesToStr
+    printfn "MITM Decrypt: %s" msg
+    (p, g, p, p, code, iv)
+
+let msgMToA (p, g, A, B, code, iv) = msgMToB (p, g, A, B, code, iv)
+
+let MITMExchange =
+    keyAToB (p_big, g_big) |> keyMToB |> keyBToA |> keyMToA
+    |> msgAToB |> msgMToB |> msgBToA |> msgMToA
+    |> endA
