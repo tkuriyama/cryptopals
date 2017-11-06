@@ -55,9 +55,7 @@ let keyMToB g' (p, g, A) = (p, g', A)
 let keyMToA g' (p, g, A, B) = (p, g', A, B)
 
 let msgMToOther attack (p, g, A, B, code, iv) =
-    let s : BigInteger = attack (p, g, A, B)
-    let key = s.ToByteArray() |> Sha1.sha1
-    let msg = Utils.CBCDecrypt key.[..15] iv code |> Utils.bytesToStr
+    let msg = attack (p, g, A, B, code, iv)
     printfn "\nMITM Decrypt: %s\n" msg
     (p, g, A, B, code, iv)
 
@@ -68,8 +66,27 @@ let MITMExchange g' attack =
     |> msgBToA |> msgMToOther attack
     |> endA
 
-let attack1 (p, g, A, B) = (BigInteger 1)
+let attack1 (p, g, A, B, code, iv) =
+    let s = BigInteger 1
+    let key = s.ToByteArray() |> Sha1.sha1
+    Utils.CBCDecrypt key.[..15] iv code |> Utils.bytesToStr
 let MITMExchange1 = MITMExchange (BigInteger 1) attack1
 
-let attack2 (p, g, A, B) = (BigInteger 0)
-let MITMExchange2 = MITMExchange (BigInteger 0) attack2
+let attack2 (p, g, A, B, code, iv) =
+    let s = BigInteger 0
+    let key = s.ToByteArray() |> Sha1.sha1
+    Utils.CBCDecrypt key.[..15] iv code |> Utils.bytesToStr
+let MITMExchange2 = MITMExchange p_big attack2
+
+let attack3 (p, g, A, B, code, iv) =
+    let tryDecrypt code iv (s: BigInteger) =
+        let key = s.ToByteArray() |> Sha1.sha1
+        Utils.CBCDecryptKeepPad key.[..15] iv code 
+    let rec iter gs =
+        match gs with
+        | []    -> "Unable to decrypt message" 
+        | x::xs -> let guess = tryDecrypt code iv x
+                   if Utils.validPKCS7 guess then guess |> Utils.stripPKCS7 |> Utils.bytesToStr
+                   else iter xs
+    iter [BigInteger 0; BigInteger 1; g]
+let MITMExchange3 = MITMExchange (p_big - (BigInteger 1)) attack3
