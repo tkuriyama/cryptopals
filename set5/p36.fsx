@@ -13,9 +13,12 @@ let SHA256ToInt (bs: byte []) : int =
     (new SHA256Managed()).ComputeHash bs
     |> Array.fold (fun acc x -> acc + (int x)) 0
 
+let SHA256ToBigInt (bs: byte []) : BigInteger =
+    (new SHA256Managed()).ComputeHash bs |> Array.toList |> Utils.bytesToBigInt
+
 (* Client and Server Pre-Agreed *) 
 
-let N = BigInteger 37
+let N = Utils.hexToBigInt N_hex
 let g = BigInteger 2
 let k = BigInteger 3
 let I = "test@test.com" |> Utils.strToBytes
@@ -40,18 +43,18 @@ let keyCToS = (I, BigInteger.ModPow (g, a, N))
 let keySToC (I, A) = (I, A, salt, (k * v + BigInteger.ModPow (g, b, N)))
 
 let HMACCToS P (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
-    let u: int = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToInt
-    let x: int = Array.append (salt.ToByteArray()) P |> SHA256ToInt
-    let s: BigInteger = BigInteger.ModPow ((B - k * BigInteger.Pow(g, x)),
-                                           (a + (BigInteger (u * x))),
+    let u = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToBigInt
+    let x = Array.append (salt.ToByteArray()) P |> SHA256ToBigInt
+    let s: BigInteger = BigInteger.ModPow ((B - k * BigInteger.ModPow (g, x, N)),
+                                           (a + (u * x)),
                                            N)
     let K = (new SHA256Managed()).ComputeHash (s.ToByteArray()) 
     let h = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
     (I, A, salt, B, h)
 
 let HMACSToC P (I, A: BigInteger, salt: BigInteger, B: BigInteger, h) =
-    let u: int = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToInt
-    let s: BigInteger = BigInteger.ModPow (A * BigInteger.Pow(v, u), b, N)
+    let u = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToBigInt
+    let s: BigInteger = BigInteger.ModPow (A * BigInteger.ModPow(v, u, N), b, N)
     let K = (new SHA256Managed()).ComputeHash (s.ToByteArray())
     let h' = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
     if h = h' then "ok" else "password incorrect"
