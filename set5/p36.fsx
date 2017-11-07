@@ -41,7 +41,7 @@ let keySToC (I, A) = (I, A, salt, (k * v + BigInteger.ModPow (g, b, N)))
 let HMACCToS P (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
     let u = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToBigInt
     let x = Array.append (salt.ToByteArray()) P |> SHA256ToBigInt
-    let s: BigInteger = BigInteger.ModPow ((B - k * BigInteger.ModPow (g, x, N)),
+    let s = BigInteger.ModPow ((B - k * BigInteger.ModPow (g, x, N)),
                                            (a + (u * x)),
                                            N)
     let K = (new SHA256Managed()).ComputeHash (s.ToByteArray()) 
@@ -50,7 +50,7 @@ let HMACCToS P (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
 
 let HMACSToC P (I, A: BigInteger, salt: BigInteger, B: BigInteger, h) =
     let u = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToBigInt
-    let s: BigInteger = BigInteger.ModPow (A * BigInteger.ModPow(v, u, N), b, N)
+    let s = BigInteger.ModPow (A * BigInteger.ModPow(v, u, N), b, N)
     let K = (new SHA256Managed()).ComputeHash (s.ToByteArray())
     let h' = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
     if h = h' then "ok" else "password incorrect"
