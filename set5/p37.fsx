@@ -57,3 +57,18 @@ let HMACSToC P (I, A: BigInteger, salt: BigInteger, B: BigInteger, h) =
 
 let exchange =
     keyCToS (BigInteger.ModPow (g, a, N)) |> keySToC |> HMACCToS P |> HMACSToC P
+
+(* Zero Key Exchange *)
+
+
+let HMACCToS' (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
+    let s = BigInteger 0
+    let K = (new SHA256Managed()).ComputeHash (s.ToByteArray()) 
+    let h = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
+    (I, A, salt, B, h)
+
+let exchangeZeroKey =
+    keyCToS (BigInteger 0) |> keySToC |> HMACCToS' |> HMACSToC P
+
+let exchangeZeroKey2 =
+    keyCToS N |> keySToC |> HMACCToS' |> HMACSToC P
