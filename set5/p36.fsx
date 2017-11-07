@@ -39,7 +39,7 @@ let v =
 let keyCToS = (I, BigInteger.ModPow (g, a, N))
 let keySToC (I, A) = (I, A, salt, (k * v + BigInteger.ModPow (g, b, N)))
 
-let HMACCToS (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
+let HMACCToS P (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
     let u: int = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToInt
     let x: int = Array.append (salt.ToByteArray()) P |> SHA256ToInt
     let s: BigInteger = BigInteger.ModPow ((B - k * BigInteger.Pow(g, x)),
@@ -49,11 +49,11 @@ let HMACCToS (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
     let h = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
     (I, A, salt, B, h)
 
-let HMACSToC (I, A: BigInteger, salt: BigInteger, B: BigInteger, h) =
+let HMACSToC P (I, A: BigInteger, salt: BigInteger, B: BigInteger, h) =
     let u: int = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToInt
     let s: BigInteger = BigInteger.ModPow (A * BigInteger.Pow(v, u), b, N)
     let K = (new SHA256Managed()).ComputeHash (s.ToByteArray())
     let h' = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
-    if h = h' then "ok" else "hashes do not match"
+    if h = h' then "ok" else "password incorrect"
 
-let exchange = keyCToS |> keySToC |> HMACCToS |> HMACSToC
+let exchange = keyCToS |> keySToC |> HMACCToS P |> HMACSToC P
