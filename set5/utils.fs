@@ -61,14 +61,14 @@ let hexToBytes s =
 let update i n b =
     ((b |> int |> BigInteger) <<< (i * 8)) ||| n
 
-let hexToBigInt s = hexToBytes s |> bytesToBigInt
-
 let bytesToBigInt bs =
     bs
     |> List.rev
     |> List.fold (fun (i, n) b -> (i + 1, update i n b)) (0, BigInteger 0)
     |> snd
-b
+
+let hexToBigInt s = hexToBytes s |> bytesToBigInt
+
 let bytesToStr (b: byte seq) : string =
     Seq.toArray b
     |> Text.Encoding.ASCII.GetString
