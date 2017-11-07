@@ -30,8 +30,8 @@ let b = r.Next(100) |> BigInteger
 
 let salt = r.Next(1000) |> BigInteger
 let v =
-    let x = Array.append (salt.ToByteArray()) P |> SHA256ToInt
-    BigInteger.ModPow (g, BigInteger x, N)
+    let x = Array.append (salt.ToByteArray()) P |> SHA256ToBigInt
+    BigInteger.ModPow (g, x, N)
 
 (* Exchange *)
 
