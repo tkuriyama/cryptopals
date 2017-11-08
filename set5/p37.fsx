@@ -22,7 +22,7 @@ let N = Utils.hexToBigInt N_hex
 let g = BigInteger 2
 let k = BigInteger 3
 let I = "test@test.com" |> Utils.strToBytes
-let P = "YELLOW SUBMARINE" |> Utils.strToBytes
+let P = "abaissed" |> Utils.strToBytes
 
 (* Secrets *)
 
@@ -43,19 +43,32 @@ let u = Utils.randKey 16 |> Array.toList |> Utils.bytesToBigInt
 let keyCToS A = (I, A)
 let keySToC (I, A) = (I, A, salt, (BigInteger.ModPow (g, b, N)), u)
 
-let HMACCToS P (I, A: BigInteger, salt: BigInteger, B: BigInteger, u) =
+let HMACCToS (I, A: BigInteger, salt: BigInteger, B: BigInteger, u) =
     let x = Array.append (salt.ToByteArray()) P |> SHA256ToBigInt
     let s = BigInteger.ModPow (B, (a + (u * x)), N)
     let h = SHA256AndHMAC s salt
     (I, A, salt, B, u, h)
 
-let HMACSToC P (I, A: BigInteger, salt: BigInteger, B: BigInteger, u, h) =
+let HMACSToC (I, A: BigInteger, salt: BigInteger, B: BigInteger, u, h) =
     let s = BigInteger.ModPow (A * BigInteger.ModPow(v, u, N), b, N)
     let h' = SHA256AndHMAC s salt
     if h = h' then "ok" else "password incorrect"
 
 let exchange =
-    keyCToS (BigInteger.ModPow (g, a, N)) |> keySToC |> HMACCToS P |> HMACSToC P
+    keyCToS (BigInteger.ModPow (g, a, N)) |> keySToC |> HMACCToS |> HMACSToC
 
 (* MITM Password Crack *)
 
+let HMACSToC' (I, A: BigInteger, salt: BigInteger, B: BigInteger, u, h) =
+    let rec guess words =
+        if Seq.length words = 0 then "no valid password guessed"
+        else let p = Seq.head words |> Utils.strToBytes
+             let x = Array.append (salt.ToByteArray()) p |> SHA256ToBigInt
+             let v = BigInteger.ModPow (g, x, N)
+             let s = BigInteger.ModPow (A * BigInteger.ModPow(v, u, N), b, N)
+             let h' = SHA256AndHMAC s salt
+             if h = h' then (p |> Utils.bytesToStr) else guess (Seq.tail words)
+    Utils.readLines "words.txt" |> guess
+
+let exchangeHack =
+    keyCToS (BigInteger.ModPow (g, a, N)) |> keySToC |> HMACCToS |> HMACSToC'
