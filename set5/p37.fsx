@@ -12,6 +12,10 @@ let N_hex = "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020
 let SHA256ToBigInt (bs: byte []) : BigInteger =
     (new SHA256Managed()).ComputeHash bs |> Array.toList |> Utils.bytesToBigInt
 
+let SHA256AndHMAC (s: BigInteger) (salt: BigInteger) =
+    let K = (new SHA256Managed()).ComputeHash (s.ToByteArray()) 
+    (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
+
 (* Client and Server Pre-Agreed *) 
 
 let N = Utils.hexToBigInt N_hex
@@ -32,43 +36,26 @@ let salt = r.Next(1000) |> BigInteger
 let v =
     let x = Array.append (salt.ToByteArray()) P |> SHA256ToBigInt
     BigInteger.ModPow (g, x, N)
+let u = Utils.randKey 16 |> Array.toList |> Utils.bytesToBigInt
 
 (* Normal Exchange *)
 
 let keyCToS A = (I, A)
-let keySToC (I, A) = (I, A, salt, (k * v + BigInteger.ModPow (g, b, N)))
+let keySToC (I, A) = (I, A, salt, (BigInteger.ModPow (g, b, N)), u)
 
-let HMACCToS P (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
-    let u = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToBigInt
+let HMACCToS P (I, A: BigInteger, salt: BigInteger, B: BigInteger, u) =
     let x = Array.append (salt.ToByteArray()) P |> SHA256ToBigInt
-    let s = BigInteger.ModPow ((B - k * BigInteger.ModPow (g, x, N)),
-                                           (a + (u * x)),
-                                           N)
-    let K = (new SHA256Managed()).ComputeHash (s.ToByteArray()) 
-    let h = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
-    (I, A, salt, B, h)
+    let s = BigInteger.ModPow (B, (a + (u * x)), N)
+    let h = SHA256AndHMAC s salt
+    (I, A, salt, B, u, h)
 
-let HMACSToC P (I, A: BigInteger, salt: BigInteger, B: BigInteger, h) =
-    let u = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToBigInt
+let HMACSToC P (I, A: BigInteger, salt: BigInteger, B: BigInteger, u, h) =
     let s = BigInteger.ModPow (A * BigInteger.ModPow(v, u, N), b, N)
-    let K = (new SHA256Managed()).ComputeHash (s.ToByteArray())
-    let h' = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
+    let h' = SHA256AndHMAC s salt
     if h = h' then "ok" else "password incorrect"
 
 let exchange =
     keyCToS (BigInteger.ModPow (g, a, N)) |> keySToC |> HMACCToS P |> HMACSToC P
 
-(* Zero Key Exchange *)
+(* MITM Password Crack *)
 
-
-let HMACCToS' (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
-    let s = BigInteger 0
-    let K = (new SHA256Managed()).ComputeHash (s.ToByteArray()) 
-    let h = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
-    (I, A, salt, B, h)
-
-let exchangeZeroKey =
-    keyCToS (BigInteger 0) |> keySToC |> HMACCToS' |> HMACSToC P
-
-let exchangeZeroKey2 =
-    keyCToS N |> keySToC |> HMACCToS' |> HMACSToC P
