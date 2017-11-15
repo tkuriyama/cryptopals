@@ -202,9 +202,10 @@ let CBCDecryptKeepPad (key: string) (iv: byte []) (code: byte []) : byte [] =
 let rec egcd (a:int) (b: int) : (int * int * int) = 
     match a, b with
     | 0, b -> (b, 0, 1)
-    | a, b -> let (g, s, t) = egcd (b % a)a in
+    | a, b -> let (g, s, t) = egcd (b % a) a in
               (g, (t - (b / a) * s), s)
 
-let modinv a m : int option =
-    let g, s, t = egcd a m
-    if g > 1 then None else Some (s % m)
+let modInv a m : int option =
+    let g, s, _ = egcd a m
+    let mkPos n = if n < 0 then n + m else n
+    if g = 1 then Some (mkPos s) else None
