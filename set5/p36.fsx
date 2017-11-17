@@ -42,8 +42,8 @@ let HMACCToS P (I, A: BigInteger, salt: BigInteger, B: BigInteger) =
     let u = Array.append (A.ToByteArray()) (B.ToByteArray()) |> SHA256ToBigInt
     let x = Array.append (salt.ToByteArray()) P |> SHA256ToBigInt
     let s = BigInteger.ModPow ((B - k * BigInteger.ModPow (g, x, N)),
-                                           (a + (u * x)),
-                                           N)
+                               (a + (u * x)),
+                               N)
     let K = (new SHA256Managed()).ComputeHash (s.ToByteArray()) 
     let h = (new HMACSHA256(K)).ComputeHash (salt.ToByteArray())
     (I, A, salt, B, h)
