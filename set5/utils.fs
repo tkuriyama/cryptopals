@@ -199,7 +199,7 @@ let CBCDecryptKeepPad (key: string) (iv: byte []) (code: byte []) : byte [] =
 
 (* RSA *)
 
-let rec egcd (a:int) (b: int) : (int * int * int) = 
+let rec egcd (a: int) (b: int) : (int * int * int) =
     match a, b with
     | 0, b -> (b, 0, 1)
     | a, b -> let (g, s, t) = egcd (b % a) a in
@@ -209,3 +209,15 @@ let modInv a m : int option =
     let g, s, _ = egcd a m
     let mkPos n = if n < 0 then n + m else n
     if g = 1 then Some (mkPos s) else None
+
+let rec egcdBig (a: BigInteger) (b: BigInteger) : (BigInteger * BigInteger * BigInteger) =
+    let z = BigInteger 0
+    match a, b with
+    | z, b -> (b, (BigInteger 0), (BigInteger 1))
+    | a, b -> let (g, s, t) = egcdBig (b % a) a in
+              (g, (t - (b / a) * s), s)
+
+let modInvBig a m : BigInteger option =
+    let g, s, _ = egcdBig a m
+    let mkPos n = if n < (BigInteger 0) then n + m else n
+    if g = (BigInteger 1) then Some (mkPos s) else None
