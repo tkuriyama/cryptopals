@@ -211,11 +211,8 @@ let modInv a m : int option =
     if g = 1 then Some (mkPos s) else None
 
 let rec egcdBig (a: BigInteger) (b: BigInteger) : (BigInteger * BigInteger * BigInteger) =
-    let z = BigInteger 0
-    match a, b with
-    | z, b -> (b, (BigInteger 0), (BigInteger 1))
-    | a, b -> let (g, s, t) = egcdBig (b % a) a in
-              (g, (t - (b / a) * s), s)
+    if a = (BigInteger 0) then (b, (BigInteger 0), (BigInteger 1))
+    else let (g, s, t) = egcdBig (b % a) a in (g, (t - (b / a) * s), s)
 
 let modInvBig a m : BigInteger option =
     let g, s, _ = egcdBig a m
