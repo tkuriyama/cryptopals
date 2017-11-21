@@ -23,8 +23,8 @@ let m = BigInteger.ModPow (c, d.Value, n)
 (* Test String *)
 
 let msg = "Test" |> Utils.strToBytes |> BigInteger
-let code = BigInteger.ModPow (msg, BigInteger e, BigInteger n)
+let code = BigInteger.ModPow (msg,  e, n)
 let plain =
-    let b = BigInteger.ModPow (code, BigInteger (d.Value), BigInteger n)
+    let b = BigInteger.ModPow (code, d.Value, n)
     b.ToByteArray() |> Utils.bytesToStr
 
