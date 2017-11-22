@@ -25,7 +25,7 @@ let c3 = encrypt n3 e msg
 
 let solve c1 n1 c2 n2 c3 n3 : BigInteger =
     let ms1, ms2, ms3 = n2 * n3, n1 * n3, n1 * n2
-    c1 * ms1 * (Utils.modInvBig ms1 n1).Value
-    |> (+) c2 * ms2 * (Utils.modInvBig ms2 n2).Value
-    |> (+) c3 + ms3 * (Utils.modInvBig ms3 n3).Value
+    (c1 * ms1 * (Utils.modInvBig ms1 n1).Value)
+    |> (+) (c2 * ms2 * (Utils.modInvBig ms2 n2).Value)
+    |> (+) (c3 + ms3 * (Utils.modInvBig ms3 n3).Value)
 
