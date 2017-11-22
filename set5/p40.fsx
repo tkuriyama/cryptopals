@@ -4,12 +4,11 @@ open Utils
 open System
 open System.Numerics
 
-
 let primes = Utils.readLines "primes_10K.txt" |> Seq.map int |> Seq.map BigInteger
 
 let r = new Random()
-let p (r: Random) = Seq.take (8000 + (r.Next(1000))) primes |> Seq.last
-let q (r: Random) = Seq.take (9000 + (r.Next(1000))) primes |> Seq.last
+let p (r: Random) = Seq.take (1000 + (r.Next(1000))) primes |> Seq.last
+let q (r: Random) = Seq.take (2000 + (r.Next(1000))) primes |> Seq.last
 let n1 = (p r) * (q r)
 let n2 = (p r) * (q r)
 let n3 = (p r) * (q r)
@@ -23,9 +22,10 @@ let c1 = encrypt n1 e msg
 let c2 = encrypt n2 e msg
 let c3 = encrypt n3 e msg
 
-let solve : BigInteger = 
+let solve = 
     let ms1, ms2, ms3 = n2 * n3, n1 * n3, n1 * n2
-    let sum = (c1 * ms1 * (Utils.modInvBig ms1 n1).Value)
-              |> (+) (c2 * ms2 * (Utils.modInvBig ms2 n2).Value)
-              |> (+) (c3 + ms3 * (Utils.modInvBig ms3 n3).Value)
-    BigInteger.ModPow (sum, (BigInteger 1), n1 * n2 * n3)
+    let r1 = c1 * ms1 * (Utils.modInvBig ms1 n1).Value
+    let r2 = c2 * ms2 * (Utils.modInvBig ms2 n2).Value
+    let r3 = c3 * ms3 * (Utils.modInvBig ms3 n3).Value
+    BigInteger.ModPow (r1 + r2 + r3, (BigInteger 1), n1 * n2 * n3)
+
