@@ -7,7 +7,7 @@ open System.Numerics
 let primes = Utils.readLines "primes_10K.txt" |> Seq.map int |> Seq.map BigInteger
 
 let r = new Random()
-let p = Seq.take (9000 + (r.Next(1000))) primes |> Seq.last 
+let p = Seq.take (8000 + (r.Next(1000))) primes |> Seq.last 
 let q = Seq.take (9000 + (r.Next(1000))) primes |> Seq.last 
 let n = p * q
 
