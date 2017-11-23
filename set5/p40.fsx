@@ -29,3 +29,4 @@ let solve =
     let r3 = c3 * ms3 * (Utils.modInvBig ms3 n3).Value
     BigInteger.ModPow (r1 + r2 + r3, (BigInteger 1), n1 * n2 * n3)
 
+let test = msg * msg * msg |> (=) solve

@@ -218,3 +218,4 @@ let modInvBig a m : BigInteger option =
     let g, s, _ = egcdBig a m
     let mkPos n = if n < (BigInteger 0) then n + m else n
     if g = (BigInteger 1) then Some (mkPos s) else None
+
