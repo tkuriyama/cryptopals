@@ -71,3 +71,20 @@ F# 4.1 and Python 3.6
                                67     215 p32.py
                                45     135 p32_server.py
      598    3068 total        237     722 total
+
+### Set 5
+
+F# 4.1
+
+	Lines  Words
+      29     111 p33.fsx
+      70     323 p34.fsx
+      92     452 p35.fsx
+      59     268 p36.fsx
+      74     340 p37.fsx
+      74     355 p38.fsx
+      30     124 p39.fsx
+      32     184 p40.fsx
+      90     517 sha1.fs
+     221    1172 utils.fs
+	 771    3846 total
