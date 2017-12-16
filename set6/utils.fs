@@ -111,14 +111,16 @@ let modInvBig a m : BigInteger option =
 
 let primes = readLines "large_primes.csv" |> Seq.map BigInteger.Parse
 
-let genRSAKeys (r: Random) : ((BigInteger * BigInteger) * (BigInteger * BigInteger)) =
-    let rec pick e =
-        let p = Seq.take (1 + r.Next(9999)) primes |> Seq.last
-        if p % e = (BigInteger 0) then pick e else p
+let rec genRSAKeys (r: Random) : ((BigInteger * BigInteger) * (BigInteger * BigInteger)) =
+    let rec pick e s n =
+        let p = Seq.take (s + r.Next(n)) primes |> Seq.last
+        if p % e = (BigInteger 0) then pick e s n else p
     let e = BigInteger 3
-    let p = pick e
-    let q = pick e
+    let p = pick e 1 5000
+    let q = pick e 5000 4999
     let n = p * q
     let et = (p - (BigInteger 1)) * (q - (BigInteger 1))
-    let d = (modInvBig e et).Value
-    ((e, n), (d, n))
+    let d = modInvBig e et
+    match d with
+    | Some v -> ((e, n), (v, n))
+    | _      -> genRSAKeys r
