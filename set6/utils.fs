@@ -116,7 +116,7 @@ let rec genRSAKeys (r: Random) : ((BigInteger * BigInteger) * (BigInteger * BigI
         let p = Seq.take (s + r.Next(n)) primes |> Seq.last
         if p % e = (BigInteger 0) then pick e s n else p
     let e = BigInteger 3
-    let p = pick e 1 5000
+    let p = pick e 1 4998
     let q = pick e 5000 4999
     let n = p * q
     let et = (p - (BigInteger 1)) * (q - (BigInteger 1))
