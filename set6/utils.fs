@@ -142,7 +142,15 @@ let decryptRSA (d: BigInteger) (n: BigInteger) (c: BigInteger) =
     if c > n then failwith "message out of range"
     else BigInteger.ModPow (c, d, n)
 
-(* Root *)
+(* N Root *)
 
-let rootBig (e: int) (n: BigInteger) : BigInteger =
-    BigInteger 0
+let rootBig (n: BigInteger) (A: BigInteger) : BigInteger =
+    let rec f x tries =
+        match tries with
+        | 10000 -> x
+        | _     -> let m = n - (BigInteger 1)
+                   let x' = (m*x + A/(BigInteger.Pow (x, (int m)))) / n
+                   match abs(x' - x) with
+                   | t when t < (BigInteger 2) -> x'
+                   | _ -> f x' (tries+1)
+    f (A / n) 0

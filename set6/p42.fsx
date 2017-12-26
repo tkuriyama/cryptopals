@@ -29,11 +29,11 @@ let parseSignature s : bool =
     | ParseRegex "0001fff*00.*" s -> true
     | _ -> false
 
-let verify (s: byte []) : bool =
+let genSignature (s: byte []) : string =  
     let s' = Utils.encryptRSA e n (BigInteger s)
     s'.ToByteArray() |> Array.rev |> Array.append [|0uy|]
     |> Utils.bytesToHex
-    |> parseSignature
+let verify (s: byte []) : bool = genSignature s |> parseSignature
 let testVerify = verify signature
 
 let forge (digest: string) : byte [] =
@@ -41,6 +41,6 @@ let forge (digest: string) : byte [] =
     let s =
         String.concat "" ["0001ff00"; digest; String.replicate r "00"]
         |> Utils.hexToBigInt
-        |> Utils.rootBig 3
+        |> Utils.rootBig (BigInteger 3)
     s.ToByteArray()
 let testForge = forge digest |> verify
