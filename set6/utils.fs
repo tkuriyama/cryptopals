@@ -141,3 +141,8 @@ let encryptRSA (e: BigInteger) (n: BigInteger) (m: BigInteger) =
 let decryptRSA (d: BigInteger) (n: BigInteger) (c: BigInteger) =
     if c > n then failwith "message out of range"
     else BigInteger.ModPow (c, d, n)
+
+(* Root *)
+
+let rootBig (e: int) (n: BigInteger) : BigInteger =
+    BigInteger 0
