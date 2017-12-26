@@ -131,13 +131,12 @@ let genRSAKeysSample =
     let n = p * q
     let et = (p - (BigInteger 1)) * (q - (BigInteger 1))
     let d = modInvBig e et
-    ((e, n), (d, n))
+    ((e, n), (d.Value, n))
 
 let encryptRSA (e: BigInteger) (n: BigInteger) (m: BigInteger) =
     if m > n then failwith "message out of range"
     else BigInteger.ModPow (m, e, n)
 
-let decryptRSA (e: BigInteger) (n: BigInteger) (c: BigInteger) =
+let decryptRSA (d: BigInteger) (n: BigInteger) (c: BigInteger) =
     if c > n then failwith "message out of range"
-    else BigInteger.ModPow (c, e, n)
-
+    else BigInteger.ModPow (c, d, n)
