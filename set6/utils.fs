@@ -38,6 +38,12 @@ let repeat x = seq { while true do yield x }
 let repeatArr x n = repeat x |> Seq.take n |> Seq.toArray
 let repeatSeq xs = seq { while true do yield! xs }
 
+let (|ParseRegex|_|) regex str =
+   let m = Regex(regex).Match(str)
+   if m.Success
+   then Some (List.tail [ for x in m.Groups -> x.Value ])
+   else None
+
 (* Encodings *)
 
 let hexToByte = function
