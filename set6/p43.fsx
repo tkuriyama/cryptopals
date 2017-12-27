@@ -12,4 +12,4 @@ let x, pub, q, p, g = Utils.genDSAKeys rand
 let message = "hello world" |> Utils.strToBytes
 let digest = Sha1.sha1 message |> Utils.hexToBigInt
 let r, s, k = Utils.signDSA x q p g rand digest
-let verify = verifyDSA p q pub digest r s
+let verify = Utils.verifyDSA q p g pub digest r s
