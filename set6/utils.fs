@@ -154,3 +154,27 @@ let rootBig (n: BigInteger) (A: BigInteger) : BigInteger =
                    | t when t < (BigInteger 2) -> x'
                    | _ -> f x' (tries+1)
     f (A / n) 0
+
+(* DSA *)
+
+let genDSAKeys (r: Random) =
+    let L = 256
+    let N = 40
+    let q = "f4f47f05794b256174bba6e9b396a7707e563c5b" |> hexToBigInt
+    let p = "800000000000000089e1855218a0e7dac38136ffafa72eda7859f2171e25e65eac698c1702578b07dc2a1076da241c76c62d374d8389ea5aeffd3226a0530cc565f3bf6b50929139ebeac04f48c3c84afb796d61e5a4f9a8fda812ab59494232c7d2b4deb50aa18ee9e132bfa85ac4374d7f9091abc3d015efc871a584471bb1" |> hexToBigInt
+    let g = "5958c9d3898b224b12672c0b98e06c60df923cb8bc999d119458fef538b8fa4046c8db53039db620c094c9fa077ef389b5322a559946a71903f990f1f7e0e025e2d7f7cf494aff1a0470f5b64c36b625a097f1651fe775323556fe00b3608c887892878480e99041be601a62166ca6894bdd41a7054ec89f756ba9fc95302291" |> hexToBigInt
+
+    let x = r.Next(1000000000) |> BigInteger
+    let pub = BigInteger.ModPow (g, x, p)
+    (x, pub, q, p, g)
+
+let rec signDSA x q p g (rand: Random) digest =
+    let k = rand.Next(1000000000) |> BigInteger
+    let r = (BigInteger.ModPow (g, k, p)) % q
+    let kInv = modInvBig k q
+    match kInv with
+    | Some k' -> let s = (k' * (digest + x * r)) % q
+                 let z = (BigInteger 0)
+                 if r <> z && s <> z then (rand, s, k')
+                 else signDSA x q p g rand digest
+    |_        -> signDSA x q p g rand digest
