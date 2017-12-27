@@ -170,8 +170,7 @@ let genDSAKeys (r: Random) =
 let rec signDSA x q p g (rand: Random) digest =
     let k = 1 + rand.Next(1000000000) |> BigInteger
     let r = (BigInteger.ModPow (g, k, p)) % q
-    let kInv = modInvBig k q
-    match kInv with
+    match (modInvBig k q) with
     | Some k' -> let s = (k' * (digest + x * r)) % q
                  let z = (BigInteger 0)
                  if r <> z && s <> z then (r, s, k')
