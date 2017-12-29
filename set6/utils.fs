@@ -173,7 +173,7 @@ let rec signDSA x q p g (rand: Random) digest =
     match (modInvBig k q) with
     | Some k' -> let s = (k' * (digest + x * r)) % q
                  let z = (BigInteger 0)
-                 if r <> z && s <> z then (r, s, k')
+                 if r <> z && s <> z then (r, s, k)
                  else signDSA x q p g rand digest
     | _       -> signDSA x q p g rand digest
 
