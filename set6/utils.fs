@@ -61,13 +61,16 @@ let hexToBytes s =
     |> List.chunkBySize 2
     |> List.map parseHexPair
 
-let update i n b =
-    ((b |> int |> BigInteger) <<< (i * 8)) ||| n
+let update i n b last =
+    let shift = if i = last && (int b) < 16 then 4 else 8
+    ((b |> int |> BigInteger) <<< ((i-1) * 8 + shift)) ||| n
 
 let bytesToBigInt bs =
+    let last = (List.length bs) - 1
     bs
     |> List.rev
-    |> List.fold (fun (i, n) b -> (i + 1, update i n b)) (0, BigInteger 0)
+    |> List.fold (fun (i, n) b ->
+                  (i + 1, update i n b last)) (0, BigInteger 0)
     |> snd
 
 let hexToBigInt s = hexToBytes s |> bytesToBigInt
