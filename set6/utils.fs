@@ -170,15 +170,14 @@ let genDSAKeys (r: Random) =
     let pub = BigInteger.ModPow (g, x, p)
     (x, pub, q, p, g)
 
-let rec signDSA x q p g (rand: Random) digest =
-    let k = 1 + rand.Next(1000000000) |> BigInteger
+let rec signDSA x q p g k digest =
     let r = (BigInteger.ModPow (g, k, p)) % q
     match (modInvBig k q) with
     | Some k' -> let s = (k' * (digest + x * r)) % q
                  let z = (BigInteger 0)
-                 if r <> z && s <> z then (r, s, k)
-                 else signDSA x q p g rand digest
-    | _       -> signDSA x q p g rand digest
+                 if r <> z && s <> z then (r, s)
+                 else signDSA x q p g k digest
+    | _       -> signDSA x q p g r digest
 
 let verifyDSA q p g y digest r s : bool = 
     let reject n = n < (BigInteger 0) || n > q
