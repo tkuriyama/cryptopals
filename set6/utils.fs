@@ -51,12 +51,15 @@ let hexToByte = function
     | 'e' -> 14uy | 'f' -> 15uy
     | _ -> failwith "Invalid hex char"
 
+let parseHexPair (h: char list) : byte =
+    match List.length h with
+    | 2 -> ((List.head h |> hexToByte) <<< 4) ||| (List.last h |> hexToByte)
+    | _ -> List.head h |> hexToByte 
+
 let hexToBytes s =
     Seq.toList s
-    |> List.chunkBySize 2 
-    |> Seq.map (fun pair -> (Seq.head pair, Seq.last pair))
-    |> Seq.map (fun (x, y) -> (hexToByte x <<< 4) ||| hexToByte y)
-    |> List.ofSeq
+    |> List.chunkBySize 2
+    |> List.map parseHexPair
 
 let update i n b =
     ((b |> int |> BigInteger) <<< (i * 8)) ||| n
