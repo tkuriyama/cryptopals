@@ -13,8 +13,7 @@ let x, y, q, p, g = Utils.genDSAKeys rand
 
 let message = "hello world" |> Utils.strToBytes
 let digest = Sha1.sha1 message |> Utils.hexToBigInt
-let k = 1 + rand.Next(1000000000) |> BigInteger
-let r, s = Utils.signDSA x q p g k digest
+let r, s, k = Utils.signDSARandK x q p g digest rand
 let verify = Utils.verifyDSA q p g y digest r s
 
 (* Find Private Key given k *)
@@ -48,5 +47,8 @@ let findPrivateBrute q r s digest y : int * BigInteger =
                else loop (k+1) e
     loop 1 (pown 2 16)
 let k2, x2 = findPrivateBrute q r2 s2 digest2 y2
-let r2', s2' = Utils.signDSA x2 q p g (BigInteger k2) digest2
+let r2', s2' =
+    match (Utils.signDSA x2 q p g (BigInteger k2) digest2) with
+    | Some (r, s) -> r, s
+    | None        -> BigInteger 0, BigInteger 0
 let testFindPrivateBrute = (r2 = r2') && (s2 = s2')
