@@ -30,11 +30,7 @@ let rec combs n l =
     | _, [] -> []
     | k, (x::xs) -> List.map ((@) [x]) (combs (k-1) xs) @ combs k xs
 let addReversePairs l =
-    let addReverse pair =
-        let fst = List.head pair
-        let snd = List.last pair
-        [snd; fst]
-    let reversed = List.map addReverse l
+    let reversed = List.map List.rev l
     l @ reversed
 
 let parseList (l: string list) : (BigInteger * BigInteger * BigInteger)=
