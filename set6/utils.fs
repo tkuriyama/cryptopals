@@ -106,9 +106,11 @@ let rec egcdBig (a: BigInteger) (b: BigInteger) : (BigInteger * BigInteger * Big
     else let (g, s, t) = egcdBig (b % a) a in (g, (t - (b / a) * s), s)
 
 let modInvBig a m : BigInteger option =
-    let g, s, _ = egcdBig a m
-    let mkPos n = if n < (BigInteger 0) then n + m else n
-    if g = (BigInteger 1) then Some (mkPos s) else None
+    match a = (BigInteger 0) with
+    | true -> Some (BigInteger 0)
+    | _    -> let g, s, _ = egcdBig a m
+              let mkPos n = if n < (BigInteger 0) then n + m else n
+              if g = (BigInteger 1) then Some (mkPos s) else None
 
 (* RSA *)
 
@@ -174,11 +176,10 @@ let signDSA x q p g k digest : (BigInteger * BigInteger) option =
     let r = (BigInteger.ModPow (g, k, p)) % q
     match (modInvBig k q) with
     | Some k' -> let s = (k' * (digest + x * r)) % q
-                 let z = (BigInteger 0)
-                 if r <> z && s <> z then Some (r, s) else None
+                 Some (r, s)
     | _       -> None
 
-let rec signDSARandK x q p g digest (rand: Random) : (BigInteger * BigInteger * BigInteger) = 
+let rec signDSARandK x q p g digest (rand: Random) : (BigInteger * BigInteger * BigInteger) =
     let k = 1 + rand.Next(1000000000) |> BigInteger
     match (signDSA x q p g k digest) with
     | Some (r, s) -> r, s, k
