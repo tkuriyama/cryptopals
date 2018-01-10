@@ -130,9 +130,7 @@ let checkFermat (n: BigInteger) : bool =
         | _    -> let a = 1 + r.Next(1000000000) |> BigInteger
                   let n' = n - one
                   let test = BigInteger.ModPow (a, n', n)
-                  match test = one with
-                  | false -> false
-                  | _     -> check (iter + 1)
+                  it test = one then check (iter+1) else false
     check 0
 
 let isProbPrime (n: BigInteger) : bool =
@@ -145,9 +143,7 @@ let genPrime (bits: int) : BigInteger =
         match n > 1000 with
         | true -> BigInteger 0
         | _    -> let g = genBigInt r bits
-                  match isProbPrime g with
-                  | true -> g
-                  | _    -> loop (n+1) r
+                  if isProbPrime g then true else loop (n+1) r
     let r = new Random()
     loop 0 r
 
