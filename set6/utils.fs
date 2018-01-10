@@ -115,7 +115,12 @@ let modInvBig a m : BigInteger option =
 (* Primes *)
 
 let genBigInt (r: Random) (bits: int) : BigInteger =
-    BigInteger 0
+    let nums = Array.map string [|0..9|]
+    let chars = Array.map string [|'a'..'f'|]
+    let hexChars = Array.append nums chars
+    let hex = String.concat "" [| for _ in [1..(bits/4)] do
+                                  yield hexChars.[r.Next(16)] |]
+    hexToBigInt hex
 
 let checkFactors (ps: BigInteger list) (n: BigInteger) : bool =
     let z = BigInteger 0
@@ -130,7 +135,7 @@ let checkFermat (n: BigInteger) : bool =
         | _    -> let a = 1 + r.Next(1000000000) |> BigInteger
                   let n' = n - one
                   let test = BigInteger.ModPow (a, n', n)
-                  it test = one then check (iter+1) else false
+                  if test = one then check (iter+1) else false
     check 0
 
 let isProbPrime (n: BigInteger) : bool =
@@ -143,11 +148,15 @@ let genPrime (bits: int) : BigInteger =
         match n > 1000 with
         | true -> BigInteger 0
         | _    -> let g = genBigInt r bits
-                  if isProbPrime g then true else loop (n+1) r
+                  if isProbPrime g then g else loop (n+1) r
     let r = new Random()
     loop 0 r
 
 let primes = readLines "large_primes.csv" |> Seq.map BigInteger.Parse
+let testPrimes =
+    primes
+    |> Seq.map isProbPrime
+    |> Seq.fold (fun acc p -> if acc && p then true else false) true 
 
 (* RSA *)
 
