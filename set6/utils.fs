@@ -117,9 +117,29 @@ let modInvBig a m : BigInteger option =
 let genBigInt (r: Random) (bits: int) : BigInteger =
     BigInteger 0
 
-let isProbPrime (p: BigInteger) : bool =
-    true
+let checkFactors (ps: BigInteger list) (n: BigInteger) : bool =
+    let z = BigInteger 0
+    List.fold (fun acc p -> if acc && n % p <> z then true else false) true ps
 
+let checkFermat (n: BigInteger) : bool =
+    let r = new Random()
+    let one = BigInteger 1
+    let rec check (iter: int) : bool =
+        match iter > 10 with
+        | true -> true
+        | _    -> let a = 1 + r.Next(1000000000) |> BigInteger
+                  let n' = n - one
+                  let test = BigInteger.ModPow (a, n', n)
+                  match test = one with
+                  | false -> false
+                  | _     -> check (iter + 1)
+    check 0
+
+let isProbPrime (n: BigInteger) : bool =
+    let ps =
+        [2; 3; 5; 7; 11; 13; 17; 19; 23; 29] |> List.map BigInteger
+    (List.exists (fun p -> p = n) ps) || (checkFactors ps n && checkFermat n)
+    
 let genPrime (bits: int) : BigInteger =
     let rec loop (n: int) (r: Random): BigInteger =
         match n > 1000 with
