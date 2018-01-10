@@ -112,9 +112,28 @@ let modInvBig a m : BigInteger option =
               let mkPos n = if n < (BigInteger 0) then n + m else n
               if g = (BigInteger 1) then Some (mkPos s) else None
 
-(* RSA *)
+(* Primes *)
+
+let genBigInt (r: Random) (bits: int) : BigInteger =
+    BigInteger 0
+
+let isProbPrime (p: BigInteger) : bool =
+    true
+
+let genPrime (bits: int) : BigInteger =
+    let rec loop (n: int) (r: Random): BigInteger =
+        match n > 1000 with
+        | true -> BigInteger 0
+        | _    -> let g = genBigInt r bits
+                  match isProbPrime g with
+                  | true -> g
+                  | _    -> loop (n+1) r
+    let r = new Random()
+    loop 0 r
 
 let primes = readLines "large_primes.csv" |> Seq.map BigInteger.Parse
+
+(* RSA *)
 
 let rec genRSAKeys (r: Random) : ((BigInteger * BigInteger) * (BigInteger * BigInteger)) =
     let rec pick e s n =
