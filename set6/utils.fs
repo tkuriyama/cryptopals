@@ -186,12 +186,12 @@ let decryptRSA (d: BigInteger) (n: BigInteger) (c: BigInteger) =
 let rootBig (n: BigInteger) (A: BigInteger) : BigInteger =
     let rec f x tries =
         match tries with
-        | 100000 -> x
-        | _      -> let m = n - (BigInteger 1)
-                    let x' = (m*x + A/(BigInteger.Pow (x, (int m)))) / n
-                    match abs(x' - x) with
-                    | t when t < (BigInteger 2) -> x'
-                    | _ -> f x' (tries+1)
+        | 10000 -> x
+        | _     -> let m = n - (BigInteger 1)
+                   let x' = (m*x + A/(BigInteger.Pow (x, (int m)))) / n
+                   match abs(x' - x) with
+                   | t when t < (BigInteger 1) -> x'
+                   | _ -> f x' (tries+1)
     f (A / n) 0
 
 (* DSA *)
