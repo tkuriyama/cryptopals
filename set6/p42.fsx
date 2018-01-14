@@ -7,7 +7,10 @@ open System
 open System.Numerics
 open System.Text.RegularExpressions
 
-let ((e, n), (d, _)) = Utils.genRSAKeysSample
+let rand = new Random()
+let ((e, n), (d, _)) = Utils.genRSAKeys rand 1024
+
+(* Original Signature *)
 
 let text = "hi mom" |> Utils.strToBytes 
 let digest = Sha1.sha1 text
@@ -18,23 +21,32 @@ let signature : byte [] =
     let s = Utils.hexToBigInt block |> Utils.decryptRSA d n
     s.ToByteArray()
 
+(* Parser and Verifier *)
+
 let (|ParseRegex|_|) regex str =
    let m = Regex(regex).Match(str)
    if m.Success
    then Some (List.tail [ for x in m.Groups -> x.Value ])
    else None
 
-let parseSignature s : bool =
+let parseSignature text s : bool =
+    let digest = Sha1.sha1 text
+    let regex = String.concat "" [| "0001fff*00"; digest; ".*" |]
     match s with
-    | ParseRegex "0001fff*00.*" s -> true
+    | ParseRegex regex s -> true
     | _ -> false
 
 let genSignature (s: byte []) : string =  
     let s' = Utils.encryptRSA e n (BigInteger s)
     s'.ToByteArray() |> Array.rev |> Array.append [|0uy|]
     |> Utils.bytesToHex
-let verify (s: byte []) : bool = genSignature s |> parseSignature
-let testVerify = verify signature
+    
+let verify (s: byte []) (text: byte []): bool =
+    genSignature s |> parseSignature text
+
+let testVerify = verify signature text
+
+(* Forgery *)
 
 let forge (digest: string) : byte [] =
     let r = 128 - 4 - ((String.length digest) / 2)
@@ -42,5 +54,7 @@ let forge (digest: string) : byte [] =
         String.concat "" ["0001ff00"; digest; String.replicate r "00"]
         |> Utils.hexToBigInt
         |> Utils.rootBig (BigInteger 3)
+        |> (+) (BigInteger 1)
     s.ToByteArray()
-let testForge = forge digest |> verify
+
+let testForge = forge digest |> verify text
