@@ -41,7 +41,7 @@ let genSignature (s: byte []) : string =
     s'.ToByteArray() |> Array.rev |> Array.append [|0uy|]
     |> Utils.bytesToHex
     
-let verify (s: byte []) (text: byte []): bool =
+let verify (text: byte []) (s: byte []) : bool =
     genSignature s |> parseSignature text
 
 let testVerify = verify signature text
@@ -57,4 +57,26 @@ let forge (digest: string) : byte [] =
         |> (+) (BigInteger 1)
     s.ToByteArray()
 
+let forgeGuess padLen digest : byte [] =
+    let rand = new Random()
+    let pad = [| for _ in [1..padLen] do yield byte (rand.Next(256)) |]
+              |> Utils.bytesToHex
+    let s =
+        String.concat "" ["0001ff00"; digest; pad]
+        |> Utils.hexToBigInt
+        |> Utils.rootBig (BigInteger 3)
+    s.ToByteArray()
+
+let forge' (digest: string) : byte [] =
+    let padLen = 128 - 4 - ((String.length digest) / 2)
+    let rec loop tries =
+        let guess = forgeGuess padLen digest
+        match tries with
+        | 5000 -> guess
+        | _     -> match verify text guess with
+                   | true -> guess
+                   | _    -> loop (tries + 1)
+    loop 0
+
 let testForge = forge digest |> verify text
+let testForge' = forge' digest |> verify text
