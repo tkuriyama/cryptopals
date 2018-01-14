@@ -161,7 +161,7 @@ let testPrimes =
 (* RSA *)
 
 let rec genRSAKeys (r: Random) (bits: int) : ((BigInteger * BigInteger) * (BigInteger * BigInteger)) =
-    let e, one, zero = (BigInteger 3), (BigInteger 0), (BigInteger 1)
+    let e, one, zero = (BigInteger 3), (BigInteger 1), (BigInteger 0)
     let p, q = genPrime bits, genPrime bits
     let p', q' = p - one, q - one
     match p = q || p' % e = zero || q' % e = zero with
