@@ -145,7 +145,7 @@ let isProbPrime (n: BigInteger) : bool =
     
 let genPrime (bits: int) : BigInteger =
     let rec loop (n: int) (r: Random): BigInteger =
-        match n > 1000 with
+        match n > 100000 with
         | true -> BigInteger 0
         | _    -> let g = genBigInt r bits
                   if isProbPrime g then g else loop (n+1) r
@@ -160,19 +160,18 @@ let testPrimes =
 
 (* RSA *)
 
-let rec genRSAKeys (r: Random) : ((BigInteger * BigInteger) * (BigInteger * BigInteger)) =
-    let rec pick e s n =
-        let p = Seq.take (s + r.Next(n)) primes |> Seq.last
-        if p % e = (BigInteger 0) then pick e s n else p
-    let e = BigInteger 3
-    let p = pick e 1 4998
-    let q = pick e 5000 4999
-    let n = p * q
-    let et = (p - (BigInteger 1)) * (q - (BigInteger 1))
-    let d = modInvBig e et
-    match d with
-    | Some v -> ((e, n), (v, n))
-    | _      -> genRSAKeys r
+let rec genRSAKeys (r: Random) (bits: int) : ((BigInteger * BigInteger) * (BigInteger * BigInteger)) =
+    let e, one, zero = (BigInteger 3), (BigInteger 0), (BigInteger 1)
+    let p, q = genPrime bits, genPrime bits
+    let p', q' = p - one, q - one
+    match p = q || p' % e = zero || q' % e = zero with
+    | true -> genRSAKeys r bits
+    | _     -> let n = p * q
+               let et = p' * q'
+               let d = modInvBig e et
+               match d with
+               | Some v -> ((e, n), (v, n))
+               | _      -> genRSAKeys r bits
 
 let genRSAKeysSample =
     let p = "ffffffffffffffffc90fdaa22168c234c4c6628b80dc1cd129024e088a67cc74020bbea63b139b22514a08798e3404ddef9519b3cd3a431b302b0a6df25f14374fe1356d6d51c245e485b576625e7ec6f44c42e9a637ed6b0bff5cb6f406b7edee386bfb5a899fa5ae9f24117c4b1fe649286651ece45b3dc2007cb8a163bf0598da48361c55d39a69163fa8fd24cf5f83655d23dca3ad961c62f356208552bb9ed529077096966d670c354e4abc9804f1746c08ca237327ffffffffffffffff" |> hexToBigInt
@@ -196,12 +195,12 @@ let decryptRSA (d: BigInteger) (n: BigInteger) (c: BigInteger) =
 let rootBig (n: BigInteger) (A: BigInteger) : BigInteger =
     let rec f x tries =
         match tries with
-        | 10000 -> x
-        | _     -> let m = n - (BigInteger 1)
-                   let x' = (m*x + A/(BigInteger.Pow (x, (int m)))) / n
-                   match abs(x' - x) with
-                   | t when t < (BigInteger 2) -> x'
-                   | _ -> f x' (tries+1)
+        | 100000 -> x
+        | _      -> let m = n - (BigInteger 1)
+                    let x' = (m*x + A/(BigInteger.Pow (x, (int m)))) / n
+                    match abs(x' - x) with
+                    | t when t < (BigInteger 2) -> x'
+                    | _ -> f x' (tries+1)
     f (A / n) 0
 
 (* DSA *)
