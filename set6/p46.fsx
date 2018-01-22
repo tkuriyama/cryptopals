@@ -4,8 +4,8 @@ open Utils
 open System
 open System.Numerics
 
-let r = new Random()
-let ((e, n), (d, _)) = Utils.genRSAKeys r 1024
+let rand = new Random()
+let ((e, n), (d, _)) = Utils.genRSAKeys rand 1024
 
 let parityOracle d n c : bool =
     let m' = Utils.decryptRSA d n c
@@ -14,18 +14,23 @@ let parityOracle d n c : bool =
 let m = Convert.FromBase64String "VGhhdCdzIHdoeSBJIGZvdW5kIHlvdSBkb24ndCBwbGF5IGFyb3VuZCB3aXRoIHRoZSBGdW5reSBDb2xkIE1lZGluYQ=="
 let c = Utils.encryptRSA e n (BigInteger m)
 
-let decrypt c e n =
+let numToStr (n: BigInteger) : string = n.ToByteArray() |> Utils.bytesToStr
+
+let decrypt c e n oracle =
     let two = BigInteger.ModPow (BigInteger 2, e, n)
-    let oracle = parityOracle d n
-    let rec loop c iter (low: BigInteger) (high: BigInteger) =
-        match iter with
-        | 1024 -> high
-        | _    -> let c' = (c * two) % n
-                  let d = (high - low) / (BigInteger 2)
-                  match oracle c' with
-                  | true -> loop c' (iter + 1) low (high - d)
-                  | _    -> loop c' (iter + 1) (low + d) high
+    let iters = BigInteger.Log n / BigInteger.Log (BigInteger 2)
+                |> int |> (+) 1
+    printfn "%d" iters
+    let rec loop c iter low high =
+        match iters - iter with
+        | 0 -> high
+        | _ -> let c' = (c * two) % n
+               let d = (high - low) / (BigInteger 2)
+               printfn "%s" (numToStr high)
+               match oracle c' with
+               | true -> loop c' (iter + 1) low (high - d)
+               | _    -> loop c' (iter + 1) (low + d) high
     loop c 0 (BigInteger 0) n
 
-let guessNum = decrypt c e n
-let guess = guessNum.ToByteArray() |> Utils.bytesToStr
+let guessNum = decrypt c e n (parityOracle d n)
+let guess = numToStr guessNum
