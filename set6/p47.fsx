@@ -11,8 +11,8 @@ let k = n.ToByteArray() |> Array.length
 (* Padding and Oracle *)
 
 let parityOracle d n c : bool =
-    let m' = Utils.decryptRSA d n c
-    let mArr = m'.ToByteArray() |> Array.rev
+    let m = Utils.decryptRSA d n c
+    let mArr = m.ToByteArray() |> Array.rev
     let pad = repeatArr 0uy (k - (Array.length mArr))
     let mArr' = Array.append pad mArr
     mArr'.[0..1] = [|0uy; 2uy|]
@@ -37,10 +37,8 @@ let testParityOracle = parityOracle d n c
 (* Parity Oracle Decryption *)
 
 let B = BigInteger.Pow (BigInteger 2, (8 * (k-2)))
-let zero = BigInteger 0
-let one = BigInteger 1
-let two = BigInteger 2
-let three = BigInteger 3
+let zero, one, two, three = (BigInteger 0, BigInteger 1,
+                             BigInteger 2, BigInteger 3)
 let M = [| (two * B, three * B - one) |]
 
 let checkOracle s =
