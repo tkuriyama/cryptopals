@@ -88,3 +88,20 @@ F# 4.1
       90     517 sha1.fs
      221    1172 utils.fs
 	 771    3846 total
+
+#### Set 6
+
+F# 4.1
+    
+	Lines  Words
+      18      72 p41.fsx
+      82     352 p42.fsx
+      54     313 p43.fsx
+      57     316 p44.fsx
+      40     217 p45.fsx
+      36     183 p46.fsx
+      94     582 p47.fsx
+     112     693 p48.fsx
+      90     517 sha1.fs
+     233    1395 utils.fs
+     816    4640 total
