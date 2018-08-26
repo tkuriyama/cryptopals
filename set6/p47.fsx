@@ -90,7 +90,5 @@ let rec solve (M: (BigInteger * BigInteger) []) (s: BigInteger) =
                   if a = b then a else loop M' (nextSearch M' s) (ctr + 1)
     loop M s 1
 
-let testGenInterval = genInterval M initSearch
 let decrypted = let m = solve M initSearch
                 m.ToByteArray() |> Array.rev |> Utils.bytesToStr
-
