@@ -49,48 +49,48 @@ let initSearch =
         match checkOracle s with
         | true -> s
         | _    -> search (s + one)
-    search (n / (three * B))
+    search ((n + three * B - one) / (three * B))
 
-let genInterval (M: (BigInteger * BigInteger) []) (s: BigInteger) =
+let nextSearch (M: (BigInteger * BigInteger) []) (s: BigInteger) =
     let a, b = M.[0]
-    let r = (two * (b * s - two * B)) / n
+    let r = (two * (b * s - two * B) + n - one) / n
     
     let rec search r =        
         let rec innerSearch sRange =
             match sRange with
             | x::xs -> if checkOracle x then x else innerSearch xs
             | []    -> zero
-        let sLow = (two * B + r * n) / b
-        let sHigh = (three * B + r * n) / a
+        let sLow = (two * B + r * n + b - one) / b
+        let sHigh = (three * B + r * n + a - one) / a
         let sRange = if sLow > sHigh then failwith "out of range"
                      else [sLow .. sHigh]
         let s = innerSearch sRange
-        match s = zero with
-        | true -> search (r + one)
-        | _    -> s
-    search r, a, b
+        if s = zero then search (r + one) else s
+    search r
 
 let updateInterval (M: (BigInteger * BigInteger) []) (s: BigInteger) =
-    let s', a, b = genInterval M s
+    let a, b = M.[0]
 
-    let minR = (a * s' - three * B + one) / n
-    let maxR = (b * s' - two * B) / n 
-    let r = if minR > maxR then failwith "r range incorrect" else minR
+    let minR = (a * s - three * B + one + n - one) / n
+    let maxR = (b * s - two * B) / n
+    let r = minR
     
-    let a' = max a ((two * B  + r * n + s' - one) / s')
-    let b' = min b ((three * B - one +  r * n) / s')
+    let a' = max a ((two * B  + r * n + s - one) / s)
+    let b' = min b ((three * B - one +  r * n) / s)
     let M' = if a' > b' then failwith "invalid range" else [| (a', b') |]
-    M', s'
+    M'
 
 let rec solve (M: (BigInteger * BigInteger) []) (s: BigInteger) =
-    let rec loop M s ctr =
-        match ctr > 100 with
+    let rec loop (M: (BigInteger * BigInteger) []) s ctr =
+        match ctr > 500 with
         | true -> zero
-        | _    -> let M', s' = updateInterval M s
+        | _    -> let M' = updateInterval M s
                   let a, b = M'.[0]
                   printfn "> iteration %d" ctr
-                  if a = b then a else loop M' s' (ctr + 1)
+                  if a = b then a else loop M' (nextSearch M' s) (ctr + 1)
     loop M s 1
 
 let testGenInterval = genInterval M initSearch
-let decrypted = solve M initSearch
+let decrypted = let m = solve M initSearch
+                m.ToByteArray() |> Array.rev |> Utils.bytesToStr
+
