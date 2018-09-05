@@ -1,3 +1,5 @@
+#load "utils.fs"
+
 open Utils
 
 let base16To64 (s: string): string =
