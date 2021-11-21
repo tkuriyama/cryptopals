@@ -92,3 +92,4 @@ let rec solve (M: (BigInteger * BigInteger) []) (s: BigInteger) =
 
 let decrypted = let m = solve M initSearch
                 m.ToByteArray() |> Array.rev |> Utils.bytesToStr
+
