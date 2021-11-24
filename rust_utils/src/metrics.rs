@@ -1,5 +1,7 @@
+extern crate bit_vec;
 extern crate lazy_static;
 
+use bit_vec::BitVec;
 use lazy_static::lazy_static;
 use std::collections::HashMap;
 
@@ -83,6 +85,19 @@ fn ignore_char(c: &u8) -> bool {
 }
 
 /*----------------------------------------------------------------------------*/
+// Hamming Distance
+
+/// Hamming distance == bitwise edit / xor distance
+
+pub fn hamming_distance(v1: &Vec<u8>, v2: &Vec<u8>) -> u32 {
+    let mut bv1 = BitVec::from_bytes(v1);
+    let bv2 = BitVec::from_bytes(v2);
+
+    bv1.xor(&bv2);
+    bv1.iter().filter(|&x| x).count() as u32
+}
+
+/*----------------------------------------------------------------------------*/
 
 #[cfg(test)]
 mod tests {
@@ -105,5 +120,12 @@ mod tests {
             score_alphabetic(&v4),
             0.0001
         ));
+    }
+
+    #[test]
+    fn test_hamming() {
+        let v1 = to_bytes::from_utf8("this is a test");
+        let v2 = to_bytes::from_utf8("wokka wokka!!!");
+        assert_eq!(hamming_distance(&v1, &v2), 37);
     }
 }

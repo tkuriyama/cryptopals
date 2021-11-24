@@ -3,7 +3,8 @@ mod p1;
 mod p2;
 mod p3;
 mod p4;
-
+mod p5;
+mod p6;
 /*----------------------------------------------------------------------------*/
 
 fn main() {
@@ -15,4 +16,8 @@ fn main() {
     p3::main();
     print::problem_separator("P4");
     p4::main();
+    print::problem_separator("P5");
+    p5::main();
+    print::problem_separator("P6");
+    p6::main();
 }
