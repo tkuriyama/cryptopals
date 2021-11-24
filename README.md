@@ -12,8 +12,8 @@ Python 2.7 implementations were done for Sets 1 and 2, and part of Set 4. It is 
 
 ## F#
 
-The F# 4.1 implementations are the most complete, covering Sets 1 - 6, excepting the problems in Set 4 that require server interactions0
+The F# 4.1 implementations are the most complete, covering Sets 1 - 6, excepting the problems in Set 4 that require server interactions.
 
-# Rust
+## Rust
 
-THe latest set of implementations, a work in progress. 
+The latest set of implementations, a work in progress. 
