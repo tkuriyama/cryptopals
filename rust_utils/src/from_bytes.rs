@@ -14,7 +14,10 @@ pub fn to_b64(input: &Vec<u8>) -> String {
 }
 
 pub fn to_utf8(input: &Vec<u8>) -> String {
-    str::from_utf8(input)
-        .expect("Encoding to string failed")
-        .to_string()
+    match str::from_utf8(input) {
+        Ok(s) => s.to_string(),
+        _ => "Could not encode bytes as UTF-8 string".to_string(),
+    }
+    //   .expect("Encoding to string failed")
+    //   .to_string()
 }
