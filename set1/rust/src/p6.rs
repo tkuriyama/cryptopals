@@ -12,5 +12,5 @@ pub fn main() {
     let decrypted = decrypt_xor::multi_char_xor(&decoded, 2, 40);
     let plaintext = from_bytes::to_utf8(&decrypted);
 
-    println!("{:?}", plaintext);
+    println!("{}", plaintext);
 }
