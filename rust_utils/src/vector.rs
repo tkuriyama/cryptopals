@@ -15,3 +15,10 @@ pub fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
         })
         .collect()
 }
+
+/*----------------------------------------------------------------------------*/
+
+pub fn to_blocks(v: &Vec<u8>, size: usize) -> Vec<Vec<u8>> {
+    let blocks = v.chunks_exact(size).map(|block| block.to_vec()).collect();
+    blocks
+}

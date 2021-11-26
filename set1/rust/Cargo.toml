@@ -7,3 +7,4 @@ edition = "2021"
 
 [dependencies]
 rust_utils = { path = "../../rust_utils" }
+openssl = "0.10.38"
