@@ -1,4 +1,4 @@
-use openssl::symm::{Cipher, Mode};
+use openssl::symm::Cipher;
 use rust_utils::*;
 
 /*----------------------------------------------------------------------------*/
@@ -6,11 +6,11 @@ use rust_utils::*;
 
 #[test]
 fn test_aes_roundtrip() {
-    let mut msg = to_bytes::from_utf8("Hello, World! This is a test.");
+    let msg = to_bytes::from_utf8("Hello, World! This is a test.");
     let key = to_bytes::from_utf8("YELLOW SUBMARINE");
     let iv = vec![0].repeat(16);
 
-    let encrypted = aes::encrypt_cbc(Cipher::aes_128_ecb(), 16, &mut msg, &key, &iv);
+    let encrypted = aes::encrypt_cbc(Cipher::aes_128_ecb(), 16, &msg, &key, &iv);
     println!("Encrypted: {:?}", encrypted);
 
     let decrypted = aes::decrypt_cbc(Cipher::aes_128_ecb(), 16, &encrypted, &key, &iv);

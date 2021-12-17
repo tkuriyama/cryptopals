@@ -1,4 +1,4 @@
-pub fn xor(v1: &Vec<u8>, v2: &Vec<u8>) -> Vec<u8> {
+pub fn xor(v1: &[u8], v2: &[u8]) -> Vec<u8> {
     v1.iter().zip(v2.iter()).map(|(&x1, &x2)| x1 ^ x2).collect()
 }
 
@@ -18,7 +18,7 @@ pub fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
 
 /*----------------------------------------------------------------------------*/
 
-pub fn to_blocks(v: &Vec<u8>, size: usize) -> Vec<Vec<u8>> {
+pub fn to_blocks(v: &[u8], size: usize) -> Vec<Vec<u8>> {
     let blocks = v.chunks_exact(size).map(|block| block.to_vec()).collect();
     blocks
 }

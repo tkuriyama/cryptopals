@@ -5,7 +5,7 @@ use rust_utils::*;
 
 #[test]
 pub fn test_padding() {
-    let mut m1 = vec![
+    let m1 = [
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115,
     ];
     let m1_pad: Vec<u8> = vec![
@@ -13,14 +13,14 @@ pub fn test_padding() {
         16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
     ];
 
-    let mut m2 = vec![
+    let m2 = [
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114,
     ];
     let m2_pad: Vec<u8> = vec![
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 1,
     ];
 
-    let mut m3: Vec<u8> = vec![
+    let m3 = [
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113,
     ];
 
@@ -28,14 +28,14 @@ pub fn test_padding() {
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 2, 2,
     ];
 
-    assert_eq!(pkcs7::pad(&mut m1), &m1_pad);
-    assert_eq!(pkcs7::pad(&mut m2), &m2_pad);
-    assert_eq!(pkcs7::pad(&mut m3), &m3_pad);
+    assert_eq!(pkcs7::pad(&m1), m1_pad);
+    assert_eq!(pkcs7::pad(&m2), m2_pad);
+    assert_eq!(pkcs7::pad(&m3), m3_pad);
 }
 
 #[test]
 pub fn test_stripping() {
-    let m1 = vec![
+    let m1: Vec<u8> = vec![
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115,
     ];
     let m1_pad: Vec<u8> = vec![
@@ -43,7 +43,7 @@ pub fn test_stripping() {
         16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16, 16,
     ];
 
-    let m2 = vec![
+    let m2: Vec<u8> = vec![
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114,
     ];
     let m2_pad: Vec<u8> = vec![
@@ -65,8 +65,8 @@ pub fn test_stripping() {
 
 #[test]
 pub fn test_valid() {
-    assert!(pkcs7::valid_padding(&vec![100, 1]));
-    assert!(pkcs7::valid_padding(&vec![100, 2, 2, 2]));
-    assert!(!pkcs7::valid_padding(&vec![100, 3, 3]));
-    assert!(!pkcs7::valid_padding(&vec![100, 1, 2, 3, 4, 5]));
+    assert!(pkcs7::valid_padding(&[100, 1]));
+    assert!(pkcs7::valid_padding(&[100, 2, 2, 2]));
+    assert!(!pkcs7::valid_padding(&[100, 3, 3]));
+    assert!(!pkcs7::valid_padding(&[100, 1, 2, 3, 4, 5]));
 }

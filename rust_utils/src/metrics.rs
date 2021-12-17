@@ -48,7 +48,7 @@ lazy_static! {
 /// Uses a chi-squared score based on English letter frequencies.
 /// Scores are always positive; lower is better, 0.0 is best.
 
-pub fn score_alphabetic(v: &Vec<u8>) -> f32 {
+pub fn score_alphabetic(v: &[u8]) -> f32 {
     let mut char_freq: HashMap<u8, f32> = HashMap::new();
     let total_count = v.len() as f32;
 
@@ -89,7 +89,7 @@ fn ignore_char(c: &u8) -> bool {
 
 /// Hamming distance == bitwise edit / xor distance
 
-pub fn hamming_distance(v1: &Vec<u8>, v2: &Vec<u8>) -> u32 {
+pub fn hamming_distance(v1: &[u8], v2: &[u8]) -> u32 {
     let mut bv1 = BitVec::from_bytes(v1);
     let bv2 = BitVec::from_bytes(v2);
 

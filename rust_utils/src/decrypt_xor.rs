@@ -3,11 +3,11 @@ use crate::*;
 /*----------------------------------------------------------------------------*/
 // Decrypt Single-character XOR
 
-pub fn single_char_xor(v: &Vec<u8>) -> (u8, f32, Vec<u8>) {
+pub fn single_char_xor(v: &[u8]) -> (u8, f32, Vec<u8>) {
     single_char_xors(&v).swap_remove(0)
 }
 
-pub fn single_char_xors(v: &Vec<u8>) -> Vec<(u8, f32, Vec<u8>)> {
+pub fn single_char_xors(v: &[u8]) -> Vec<(u8, f32, Vec<u8>)> {
     let mut scored: Vec<(u8, f32, Vec<u8>)> = reference::ascii_chars()
         .into_iter()
         .map(|c| find_score(c, v))
@@ -18,7 +18,7 @@ pub fn single_char_xors(v: &Vec<u8>) -> Vec<(u8, f32, Vec<u8>)> {
     scored
 }
 
-fn find_score(c: u8, msg: &Vec<u8>) -> (u8, f32, Vec<u8>) {
+fn find_score(c: u8, msg: &[u8]) -> (u8, f32, Vec<u8>) {
     let v = vec![c].repeat(msg.len());
     let xored = vector::xor(&v, msg);
 
@@ -28,7 +28,7 @@ fn find_score(c: u8, msg: &Vec<u8>) -> (u8, f32, Vec<u8>) {
 /*----------------------------------------------------------------------------*/
 // Decrypt Multi-character XOR (Vignere Cipher)
 
-pub fn multi_char_xor(v: &Vec<u8>, key_low: u8, key_high: u8) -> Vec<u8> {
+pub fn multi_char_xor(v: &[u8], key_low: u8, key_high: u8) -> Vec<u8> {
     let key_size = find_key_size(v, key_low, key_high);
     let transposed: Vec<Vec<u8>> = vector::transpose(vector::to_blocks(v, key_size as usize));
 
@@ -42,12 +42,12 @@ pub fn multi_char_xor(v: &Vec<u8>, key_low: u8, key_high: u8) -> Vec<u8> {
     vector::xor(v, &key_)
 }
 
-fn find_key_size(v: &Vec<u8>, low: u8, high: u8) -> u8 {
+fn find_key_size(v: &[u8], low: u8, high: u8) -> u8 {
     let (_, key_size) = find_key_sizes(v, low, high).swap_remove(0);
     key_size
 }
 
-fn find_key_sizes(v: &Vec<u8>, low: u8, high: u8) -> Vec<(f32, u8)> {
+fn find_key_sizes(v: &[u8], low: u8, high: u8) -> Vec<(f32, u8)> {
     let mut pairs = Vec::new();
     for guess in low..=high {
         if v.len() > (guess * 4).into() {
@@ -59,7 +59,7 @@ fn find_key_sizes(v: &Vec<u8>, low: u8, high: u8) -> Vec<(f32, u8)> {
 }
 
 // score key size as average Hamming distance normalized by key size
-fn score_key(size: u8, v: &Vec<u8>) -> f32 {
+fn score_key(size: u8, v: &[u8]) -> f32 {
     let blocks = vector::to_blocks(v, size as usize);
     let pairs = [(0, 1), (0, 2), (0, 3), (1, 2), (1, 3), (2, 3)];
     let sum: u32 = pairs

@@ -5,6 +5,7 @@ pub mod from_bytes;
 pub mod metrics;
 pub mod pkcs7;
 pub mod print;
+pub mod random;
 pub mod reference;
 pub mod to_bytes;
 pub mod vector;
