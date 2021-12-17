@@ -4,7 +4,7 @@ use rust_utils::*;
 // Padding and Stripping
 
 #[test]
-fn test_padding() {
+pub fn test_padding() {
     let mut m1 = vec![
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115,
     ];
@@ -34,7 +34,7 @@ fn test_padding() {
 }
 
 #[test]
-fn test_stripping() {
+pub fn test_stripping() {
     let m1 = vec![
         100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115,
     ];
@@ -61,4 +61,12 @@ fn test_stripping() {
     assert_eq!(pkcs7::strip(&m1_pad), Some(m1));
     assert_eq!(pkcs7::strip(&m2_pad), Some(m2));
     assert_eq!(pkcs7::strip(&m3_pad), Some(m3));
+}
+
+#[test]
+pub fn test_valid() {
+    assert!(pkcs7::valid_padding(&vec![100, 1]));
+    assert!(pkcs7::valid_padding(&vec![100, 2, 2, 2]));
+    assert!(!pkcs7::valid_padding(&vec![100, 3, 3]));
+    assert!(!pkcs7::valid_padding(&vec![100, 1, 2, 3, 4, 5]));
 }
