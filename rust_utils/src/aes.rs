@@ -1,6 +1,17 @@
 use crate::*;
-use openssl::symm::{encrypt, Cipher, Crypter, Mode};
+use openssl::symm::{decrypt, encrypt, Cipher, Crypter, Mode};
 use std::collections::HashMap;
+
+/*----------------------------------------------------------------------------*/
+// ECB, default AES 128
+
+pub fn encrypt_ecb(msg: &[u8], key: &[u8], iv: Option<&[u8]>) -> Vec<u8> {
+    encrypt(Cipher::aes_128_ecb(), &key, iv, &msg).unwrap()
+}
+
+pub fn decrypt_ecb(msg: &[u8], key: &[u8], iv: Option<&[u8]>) -> Vec<u8> {
+    decrypt(Cipher::aes_128_ecb(), &key, iv, &msg).unwrap()
+}
 
 /*----------------------------------------------------------------------------*/
 // CBC
@@ -68,9 +79,8 @@ pub fn gen_crypter(cipher: Cipher, mode: Mode, key: &[u8]) -> Crypter {
 }
 
 /*----------------------------------------------------------------------------*/
-// CBC & ECB Oracle
+// CBC & ECB Oracle (AES 128)
 
-// Encrypt ECB or CBC randomly, with random bytes prepended and appended
 pub fn encrypt_ecb_or_cbc(v: &[u8]) -> (Vec<u8>, &'static str) {
     let key = random::rand_vec(16);
     let iv = random::rand_vec(16);
@@ -81,10 +91,7 @@ pub fn encrypt_ecb_or_cbc(v: &[u8]) -> (Vec<u8>, &'static str) {
     ]
     .concat();
     match random::rand_bool() {
-        false => (
-            encrypt(Cipher::aes_128_ecb(), &key, None, &msg).unwrap(),
-            "ECB",
-        ),
+        false => (encrypt_ecb(&msg, &key, None), "ECB"),
         true => (
             encrypt_cbc(Cipher::aes_128_ecb(), 16, &msg, &key, &iv),
             "CBC",

@@ -3,17 +3,26 @@ use rust_utils::*;
 
 /*----------------------------------------------------------------------------*/
 // Encode-Decode Roundtrips
+#[test]
+fn test_ecb_roundtrip() {
+    let msg = b"Hello, World! This is a test.";
+    let key = b"YELLOW SUBMARINE";
+
+    let encrypted = aes::encrypt_ecb(msg, key, None);
+    let decrypted = aes::decrypt_ecb(&encrypted, key, None);
+
+    assert_eq!(decrypted, msg);
+}
 
 #[test]
-fn test_aes_roundtrip() {
-    let msg = to_bytes::from_utf8("Hello, World! This is a test.");
-    let key = to_bytes::from_utf8("YELLOW SUBMARINE");
-    let iv = vec![0].repeat(16);
+fn test_cbc_roundtrip() {
+    let msg = b"Hello, World! This is a test.";
+    let key = b"YELLOW SUBMARINE";
+    let iv = [0].repeat(16);
 
-    let encrypted = aes::encrypt_cbc(Cipher::aes_128_ecb(), 16, &msg, &key, &iv);
-    println!("Encrypted: {:?}", encrypted);
-
-    let decrypted = aes::decrypt_cbc(Cipher::aes_128_ecb(), 16, &encrypted, &key, &iv);
+    let encrypted = aes::encrypt_cbc(Cipher::aes_128_ecb(), 16, msg, key, &iv);
+    let decrypted = aes::decrypt_cbc(Cipher::aes_128_ecb(), 16, &encrypted, key, &iv);
 
     assert!(decrypted.is_ok());
+    assert_eq!(decrypted.unwrap(), msg);
 }

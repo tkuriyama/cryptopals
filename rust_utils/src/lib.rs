@@ -1,4 +1,5 @@
 pub mod aes;
+pub mod decrypt_ecb;
 pub mod decrypt_xor;
 pub mod float;
 pub mod from_bytes;
