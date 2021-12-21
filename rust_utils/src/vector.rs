@@ -22,3 +22,9 @@ pub fn to_blocks(v: &[u8], size: usize) -> Vec<Vec<u8>> {
     let blocks = v.chunks_exact(size).map(|block| block.to_vec()).collect();
     blocks
 }
+
+/*----------------------------------------------------------------------------*/
+
+pub fn merge(v1: &[u8], v2: &[u8]) -> Vec<u8> {
+    [v1, v2].concat()
+}

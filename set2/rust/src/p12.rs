@@ -15,7 +15,7 @@ pub fn main() {
     };
     println!("ECB mode: {}", ecb_mode);
 
-    let decrypted = decrypt_ecb::decrypt_oracle(&oracle, block_size);
+    let decrypted = decrypt_ecb::decrypt_oracle(&oracle, block_size, &Vec::new(), 0);
     println!(
         "\nPlaintext:\n{}, {:?}",
         from_bytes::to_utf8(&decrypted),
