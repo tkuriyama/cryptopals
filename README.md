@@ -18,4 +18,7 @@ The F# 4.1 implementations are the most complete, covering Sets 1 - 6, excepting
 
 ## Rust
 
-The latest set of implementations, a work in progress. Each set is an independent project and can be run accordingly with `cargo run` from `set1/rust/`, `set`/rust` etc.
+The latest set of implementations, a work in progress.
+
+- each set is an independent project and can be run accordingly with `cargo run` from `set1/rust/`, `set`/rust/` etc.
+- each set imports a shared library from the `rust_utils` directory.
