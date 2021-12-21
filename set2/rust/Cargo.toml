@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 rust_utils = { path = "../../rust_utils" }
 openssl = "0.10.38"
+lazy_static = "0.1.15"

@@ -2,6 +2,7 @@ use rust_utils::*;
 mod p10;
 mod p11;
 mod p12;
+mod p13;
 mod p14;
 mod p15;
 mod p9;
@@ -17,6 +18,8 @@ fn main() {
     p11::main();
     print::problem_separator("P12");
     p12::main();
+    print::problem_separator("P13");
+    p13::main();
     print::problem_separator("P14");
     p14::main();
     print::problem_separator("P15");
