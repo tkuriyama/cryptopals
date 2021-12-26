@@ -5,6 +5,7 @@ mod p12;
 mod p13;
 mod p14;
 mod p15;
+mod p16;
 mod p9;
 
 /*----------------------------------------------------------------------------*/
@@ -24,4 +25,6 @@ fn main() {
     p14::main();
     print::problem_separator("P15");
     p15::main();
+    print::problem_separator("P16");
+    p16::main();
 }
