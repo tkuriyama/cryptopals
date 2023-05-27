@@ -48,6 +48,20 @@ pub fn decrypt_cbc(
     key: &[u8],
     iv: &[u8],
 ) -> Result<Vec<u8>, &'static str> {
+    let plaintext = decrypt_cbc_nostrip(cipher, block_size, msg, key, iv);
+    match pkcs7::strip(&plaintext) {
+        Some(stripped) => Ok(stripped),
+        None => Err("Invalid padding"),
+    }
+}
+
+pub fn decrypt_cbc_nostrip(
+    cipher: Cipher,
+    block_size: usize,
+    msg: &[u8],
+    key: &[u8],
+    iv: &[u8],
+) -> Vec<u8> {
     let mut crypter = gen_crypter(cipher, Mode::Decrypt, key);
 
     let blocks = vector::to_blocks(msg, block_size);
@@ -62,11 +76,7 @@ pub fn decrypt_cbc(
         plaintext.extend_from_slice(&vector::xor(&decrypted_block, &prev));
         prev = block.clone();
     }
-
-    match pkcs7::strip(&plaintext) {
-        Some(stripped) => Ok(stripped),
-        None => Err("Invalid padding"),
-    }
+    plaintext
 }
 
 /*----------------------------------------------------------------------------*/
