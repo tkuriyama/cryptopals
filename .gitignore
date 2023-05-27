@@ -3,3 +3,4 @@
 *.fsproj
 obj/
 **/target/*
+**/cargo.lock

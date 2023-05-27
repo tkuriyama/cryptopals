@@ -1,3 +1,4 @@
+
 pub fn xor(v1: &[u8], v2: &[u8]) -> Vec<u8> {
     v1.iter().zip(v2.iter()).map(|(&x1, &x2)| x1 ^ x2).collect()
 }
