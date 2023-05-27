@@ -35,7 +35,7 @@ pub fn valid_padding(v: &[u8]) -> bool {
 }
 
 fn verify_padding(v: &[u8], pad_len: usize) -> bool {
-    if pad_len > v.len() {
+    if pad_len > v.len() || pad_len < 1 {
         false
     } else {
         all_equal(&v[(v.len() - pad_len)..])
