@@ -1,12 +1,12 @@
 
 ## Cryptopals
 
-Working through the Cryptopals challenges in various languages.
+Working through the Cryptopals challenges in various languages. It's a fun way to learn a new language.
 
 - [Cryptopals challenges](https://cryptopals.com/)
 - [Legacy blog notes](http://learning.tarokuriyama.com/search?q=cryptopals&max-results=20&by-date=true)
 
-The Rust implementations are the least complete but, being the latest, are most likely to be correct (e.g. the ECB byte-at-a-time decryption wasn't correctly interpreted / implemented in the Python and F# versions).
+The Rust implementations are the least complete but, being the latest, are most likely to be correct (e.g. the ECB byte-at-a-time decryption wasn't correctly interpreted / implemented in the Python and F# versions). \.
 
 ## Python
 
