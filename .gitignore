@@ -4,3 +4,4 @@
 obj/
 **/target/*
 **/cargo.lock
+**/__pycache__/*
