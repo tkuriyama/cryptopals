@@ -16,8 +16,6 @@ pub fn to_utf8(input: &[u8]) -> String {
         Ok(s) => s.to_string(),
         _ => "Could not encode bytes as UTF-8 string".to_string(),
     }
-    //   .expect("Encoding to string failed")
-    //   .to_string()
 }
 
 pub fn to_utf8_by_block(input: &[u8], block_size: usize, default: &str) -> String {

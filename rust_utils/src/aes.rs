@@ -134,3 +134,25 @@ pub fn oracle_ecb_cbc() -> (&'static str, &'static str) {
         ("CBC", mode)
     }
 }
+
+
+/*----------------------------------------------------------------------------*/
+// CTR Mode
+
+
+pub fn apply_ctr(msg: &[u8], key: &[u8], nonce: u64, ctr: Option<u64>) -> Vec<u8> {
+    let ctr_init: u64 = match ctr {
+        Some(n) => n,
+        None => 0,
+    };
+    let keystream = gen_ctr_keystream(key, nonce, ctr_init, msg.len() / 16 + 1);
+    vector::xor(msg, &keystream)
+}
+
+fn gen_ctr_keystream(key: &[u8], nonce: u64, ctr_init: u64, n_blocks: usize) -> Vec<u8> {
+    let n = u64::try_from(n_blocks).unwrap();
+    let stream: Vec<u8> = (ctr_init .. ctr_init + n).flat_map(|i| {
+        vector::merge(&to_bytes::from_u64(true, nonce), &to_bytes::from_u64(true, i))
+    }).collect();
+    encrypt_ecb(&stream, key, None)
+}
