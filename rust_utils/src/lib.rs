@@ -3,6 +3,7 @@ pub mod decrypt_ecb;
 pub mod decrypt_xor;
 pub mod float;
 pub mod from_bytes;
+pub mod mersenne;
 pub mod metrics;
 pub mod pkcs7;
 pub mod print;
