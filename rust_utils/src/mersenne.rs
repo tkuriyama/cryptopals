@@ -1,5 +1,6 @@
 // Based on https://en.wikipedia.org/wiki/Mersenne_Twister
 //use crate::*;
+use crate::*;
 use std::num::Wrapping;
 
 /*----------------------------------------------------------------------------*/
@@ -64,4 +65,15 @@ pub fn temper(mut x: u32) -> u32 {
     x ^= (x << 15) & 0xefc60000;
     x ^= x >> 18;
     x
+}
+
+/*----------------------------------------------------------------------------*/
+
+pub fn apply_ctr(msg: &[u8], key: u16) -> Vec<u8> {
+    let mut mt = seed(key as u32);
+    let keystream: Vec<u8> = std::iter::repeat(())
+        .take(msg.len())
+        .map(|_| mt.next() as u8)
+        .collect();
+    vector::xor(msg, &keystream)
 }
